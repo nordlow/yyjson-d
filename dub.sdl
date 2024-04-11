@@ -8,7 +8,7 @@ authors "Per Nordlöw <per.nordlow@gmail.com>"
 dflags "-vcolumns" "-preview=dip1000" "-preview=in"
 importPaths "src"
 
-preBuildCommands "bash provision_yyjson.sh"
+preBuildCommands "bash provision.sh"
 lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
 libs "yyjson"
 
