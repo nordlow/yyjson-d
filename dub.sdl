@@ -1,0 +1,17 @@
+name "yyjson-d"
+targetType "library"
+description "D wrapper for yyjson."
+license "BSL-1.0"
+copyright "Copyright © 2024, Per Nordlöw"
+authors "Per Nordlöw <per.nordlow@gmail.com>"
+
+# buildRequirements "allowWarnings"
+dflags "-vcolumns" "-preview=dip1000" "-preview=in"
+importPaths "src"
+
+buildType "unittest" {
+   dflags "-g" "-checkaction=context" "-allinst" "-unittest" "-cov" "-cov=ctfe"
+   dflags "-fsanitize=address" platform="posix-ldc"
+   dflags "-debug" platform="dmd"
+   dflags "--d-debug" platform="ldc"
+}
