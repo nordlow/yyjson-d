@@ -4,5 +4,5 @@ module yyjson;
 
 @safe:
 
-import yyjson; // ImportC yyjson.c. Functions are overrided below.
+import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
