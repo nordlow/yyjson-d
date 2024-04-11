@@ -1,0 +1,17 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/yyjson-d
+*yyjson-d.so
+*yyjson-d.dylib
+*yyjson-d.dll
+*yyjson-d.a
+*yyjson-d.lib
+*yyjson-d-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
+yyjson-build
