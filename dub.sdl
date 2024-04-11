@@ -5,9 +5,12 @@ license "BSL-1.0"
 copyright "Copyright © 2024, Per Nordlöw"
 authors "Per Nordlöw <per.nordlow@gmail.com>"
 
-# buildRequirements "allowWarnings"
 dflags "-vcolumns" "-preview=dip1000" "-preview=in"
 importPaths "src"
+
+preBuildCommands "bash provision_yyjson.sh"
+lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
+libs "yyjson"
 
 buildType "unittest" {
    dflags "-g" "-checkaction=context" "-allinst" "-unittest" "-cov" "-cov=ctfe"
