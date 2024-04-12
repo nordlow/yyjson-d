@@ -15,9 +15,12 @@ pure nothrow @nogc:
 	~this() {
 		// TODO: yyjson_doc_free(_doc);
 	}
+    // TODO: pragma(inline, true):
 	bool opCast(T : bool)() const scope => _doc !is null;
 	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
-	private yyjson_doc* _doc;
+	size_t bytesRead() const scope => _doc.dat_read;
+private:
+	yyjson_doc* _doc;
 }
 
 /++ JSON Value.
