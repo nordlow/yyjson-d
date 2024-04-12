@@ -11,6 +11,7 @@ module yyjson;
 struct Document {
 pure nothrow @nogc:
 	@disable this(this);
+	this(yyjson_doc* doc) in(doc) { this._doc = doc; }
 	~this() {
 		// TODO: yyjson_doc_free(_doc);
 	}
