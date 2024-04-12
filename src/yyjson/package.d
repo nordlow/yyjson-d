@@ -19,7 +19,7 @@ pure nothrow @nogc:
 	bool opCast(T : bool)() const scope => _doc !is null;
 	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
 	/++ The total number of bytes read when parsing JSON (nonzero). +/
-	size_t bytesRead() const scope => _doc.dat_read;
+	size_t byteCount() const scope => _doc.dat_read;
 private:
 	yyjson_doc* _doc;
 }
@@ -55,7 +55,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	const s = `{"a:":1, "b":2}`;
 	auto doc = s.parseJSON(Options.init);
 	assert(doc);
-	assert(doc.bytesRead == s.length);
+	assert(doc.byteCount == s.length);
 	auto root = doc.root;
 	assert(root);
 }
