@@ -16,7 +16,7 @@ pure nothrow @nogc:
 		// TODO: yyjson_doc_free(_doc);
 	}
 	bool opCast(T : bool)() const scope => _doc !is null;
-	// TODO: Value root();
+	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
 	private yyjson_doc* _doc;
 }
 
@@ -51,6 +51,8 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	const s = `{"a:":1, "b":2}`;
 	auto doc = s.parseJSON(Options.init);
 	assert(doc);
+	auto root = doc.root;
+	assert(root);
 }
 
 // import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
