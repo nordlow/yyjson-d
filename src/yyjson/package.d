@@ -20,6 +20,8 @@ pure nothrow @nogc:
 	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
 	/++ The total number of bytes read when parsing JSON (nonzero). +/
 	size_t byteCount() const scope => _doc.dat_read;
+	/++ The total number of (node) values read when parsing JSON (nonzero). +/
+	size_t valueCount() const scope => _doc.val_read;
 private:
 	yyjson_doc* _doc;
 }
@@ -56,6 +58,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	auto doc = s.parseJSON(Options.init);
 	assert(doc);
 	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 5);
 	auto root = doc.root;
 	assert(root);
 }
