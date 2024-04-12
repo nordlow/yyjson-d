@@ -91,7 +91,7 @@ alias ReadError = yyjson_read_err;
     See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
 Document parseJSON(in char[] data, int _maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
-in(_maxDepth == -1, "Setting maxDepth is not support") {
+in(_maxDepth == -1, "Setting `maxDepth` is not supported") {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
 	assert(err.code == 0, "TODO: return Result failure error using `err` fields");
