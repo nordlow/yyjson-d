@@ -16,7 +16,7 @@ pure nothrow @nogc:
 			if (_doc.str_pool)
 				(cast(FreeFn)(_doc.alc.free))(_doc.alc.ctx, _doc.str_pool);
 			(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
-			_doc.alc = typeof(_doc.alc).init;
+			// uncommented because ASan complains about this: _doc.alc = typeof(_doc.alc).init;
 		}
 	}
 	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
@@ -61,10 +61,13 @@ enum ValueType : yyjson_type {
 	TODO: Wrap in `Result` type.
  +/
 struct Value {
+	import core.stdc.string : strlen;
 pure nothrow @nogc:
 	@disable this(this);
 	bool opCast(T : bool)() const scope => _val !is null;
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+	const(char)* strz() const scope @trusted => _val.uni.str;
+	const(char)[] str() const scope @trusted => strz[0..strlen(strz)];
 	private yyjson_val* _val;
 }
 
@@ -85,6 +88,20 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	return typeof(return)(err.code == 0 ? doc : doc);
 }
 
+/// string
+@safe pure nothrow @nogc unittest {
+	const s = `"alpha"`;
+	auto doc = s.parseJSON(Options.init);
+	assert(doc);
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 1);
+	auto root = doc.root;
+	assert(root);
+	assert(root.type == ValueType.STR);
+	assert(root.str == "alpha");
+}
+
+/// object
 @safe pure nothrow @nogc unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
 	auto doc = s.parseJSON(Options.init);
