@@ -66,7 +66,7 @@ pure nothrow @nogc:
 	@disable this(this);
 	bool opCast(T : bool)() const scope => _val !is null;
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
-	const(char)* strz() const scope @trusted => _val.uni.str;
+	const(char)* strz() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() const scope @trusted => strz[0..strlen(strz)];
 	private yyjson_val* _val;
 }
