@@ -72,6 +72,7 @@ pure nothrow @nogc:
 
 	const(char)* strz() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() const scope @trusted => strz[0..strlen(strz)];
+	private alias string = str;
 
 	private yyjson_val* _val;
 }
