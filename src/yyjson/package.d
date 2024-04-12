@@ -12,11 +12,10 @@ struct Document {
 pure nothrow @nogc:
 	@disable this(this);
 	~this() @trusted {
-		version (none) // TODO: enable
 		if (_doc) {
 			if (_doc.str_pool)
-				_doc.alc.free(_doc.alc.ctx, _doc.str_pool);
-			_doc.alc.free(_doc.alc.ctx, _doc);
+				(cast(FreeFn)(_doc.alc.free))(_doc.alc.ctx, _doc.str_pool);
+			(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
 			_doc.alc = typeof(_doc.alc).init;
 		}
 	}
