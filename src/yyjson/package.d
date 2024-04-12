@@ -87,7 +87,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 }
 
 @safe pure nothrow @nogc unittest {
-	const s = `{"a:":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
+	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
 	auto doc = s.parseJSON(Options.init);
 	assert(doc);
 	assert(doc.byteCount == s.length);
