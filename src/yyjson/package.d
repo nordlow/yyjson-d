@@ -17,10 +17,14 @@ pure nothrow @nogc:
 	}
     // TODO: pragma(inline, true):
 	bool opCast(T : bool)() const scope => _doc !is null;
+
+	/++ Returns: root value or `null` if `_doc` is `null`. +/
 	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
-	/++ The total number of bytes read when parsing JSON (nonzero). +/
+
+	/++ Returns: total number of bytes read (nonzero). +/
 	size_t byteCount() const scope => _doc.dat_read;
-	/++ The total number of (node) values read when parsing JSON (nonzero). +/
+
+	/++ Returns: total number of (node) values read (nonzero). +/
 	size_t valueCount() const scope => _doc.val_read;
 private:
 	yyjson_doc* _doc;
