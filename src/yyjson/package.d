@@ -107,14 +107,19 @@ yyjson_doc *yyjson_read_opts(scope const(char)* dat,
                              yyjson_read_flag flg,
                              const yyjson_alc *alc,
                              yyjson_read_err *err);
+
+alias MallocFn = void* function(void* ctx, size_t size);
+alias ReallocFn = void* function(void* ctx, void* ptr, size_t old_size, size_t size);
+alias FreeFn = void function(void* ctx, void* ptr);
+
 struct yyjson_alc {
 pure nothrow @nogc:
     /** Same as libc's malloc(size), should not be NULL. */
-	void* function(void* ctx, size_t size) malloc;
+	MallocFn malloc;
     /** Same as libc's realloc(ptr, size), should not be NULL. */
-	void* function(void* ctx, void* ptr, size_t old_size, size_t size) realloc;
+	ReallocFn realloc;
     /** Same as libc's free(ptr), should not be NULL. */
-	void function(void* ctx, void* ptr) free;
+	FreeFn free;
     /** A context for malloc/realloc/free, can be NULL. */
     void *ctx;
 }
