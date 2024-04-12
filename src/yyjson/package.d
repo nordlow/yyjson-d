@@ -11,8 +11,22 @@ module yyjson;
 struct Document {
 pure nothrow @nogc:
 	@disable this(this);
+	~this() {
+		// TODO: yyjson_doc_free(_doc);
+	}
 	bool opCast(T : bool)() const scope => _doc !is null;
+	// TODO: Value root();
 	private yyjson_doc* _doc;
+}
+
+/++ JSON Value.
+	TODO: Wrap in `Result` type.
+ +/
+struct Value {
+pure nothrow @nogc:
+	@disable this(this);
+	bool opCast(T : bool)() const scope => _val !is null;
+	private yyjson_val* _val;
 }
 
 struct Options {
@@ -41,9 +55,50 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 // import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
-import core.stdc.stdint : uint32_t;
-struct yyjson_doc;
-struct yyjson_alc;
+import core.stdc.stdint : uint32_t, uint64_t, int64_t;
+
+/** Payload of a JSON value (8 bytes). */
+union yyjson_val_uni {
+    uint64_t    u64;
+    int64_t     i64;
+    double      f64;
+    const char *str;
+    void       *ptr;
+    size_t      ofs;
+}
+
+/**
+ Immutable JSON value, 16 bytes.
+ */
+struct yyjson_val {
+    uint64_t tag; /**< type, subtype and length */
+    yyjson_val_uni uni; /**< payload */
+}
+
+struct yyjson_alc {
+    /** Same as libc's malloc(size), should not be NULL. */
+	void* function(void* ctx, size_t size) malloc;
+    /** Same as libc's realloc(ptr, size), should not be NULL. */
+	void* function(void* ctx, void* ptr, size_t old_size, size_t size) realloc;
+    /** Same as libc's free(ptr), should not be NULL. */
+	extern (C) void function(void* ctx, void* ptr) free;
+    /** A context for malloc/realloc/free, can be NULL. */
+    void *ctx;
+}
+
+struct yyjson_doc {
+    /** Root value of the document (nonnull). */
+    yyjson_val *root;
+    /** Allocator used by document (nonnull). */
+    yyjson_alc alc;
+    /** The total number of bytes read when parsing JSON (nonzero). */
+    size_t dat_read;
+    /** The total number of value read when parsing JSON (nonzero). */
+    size_t val_read;
+    /** The string pool used by JSON values (nullable). */
+    char *str_pool;
+}
+
 alias yyjson_read_flag = uint32_t;
 alias yyjson_read_code = uint32_t;
 struct yyjson_read_err {
