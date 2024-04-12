@@ -117,6 +117,18 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	assert(root.str == "alpha");
 }
 
+/// array
+@safe pure nothrow @nogc unittest {
+	const s = `[1,2,3]`;
+	auto doc = s.parseJSON(Options.init);
+	assert(doc);
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 4);
+	auto root = doc.root;
+	assert(root);
+	assert(root.type == ValueType.ARR);
+}
+
 /// object
 @safe pure nothrow @nogc unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
