@@ -76,10 +76,13 @@ pure nothrow @nogc:
 
 	private yyjson_val* _val;
 }
+alias JSONValue = Value; // `std.json` compliance
 
 struct Options {
+	enum none = typeof(this).init;
 	private yyjson_read_flag _flag;
 }
+alias JSONOptions = Options; // `std.json` compliance
 
 /** Error information for JSON reader. */
 alias ReadError = yyjson_read_err;
@@ -87,7 +90,7 @@ alias ReadError = yyjson_read_err;
 /++ Parse JSON Document from `data`.
     See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @nogc {
+Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
 	assert(err.code == 0, "TODO: return Result failure error using `err` fields");
@@ -97,7 +100,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 /// boolean
 @safe pure nothrow @nogc unittest {
 	const s = `false`;
-	auto doc = s.parseJSON(Options.init);
+	auto doc = s.parseJSON();
 	assert(doc);
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 1);
@@ -109,7 +112,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 /// string
 @safe pure nothrow @nogc unittest {
 	const s = `"alpha"`;
-	auto doc = s.parseJSON(Options.init);
+	auto doc = s.parseJSON();
 	assert(doc);
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 1);
@@ -122,7 +125,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 /// array
 @safe pure nothrow @nogc unittest {
 	const s = `[1,2,3]`;
-	auto doc = s.parseJSON(Options.init);
+	auto doc = s.parseJSON();
 	assert(doc);
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 4);
@@ -134,7 +137,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 /// object
 @safe pure nothrow @nogc unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
-	auto doc = s.parseJSON(Options.init);
+	auto doc = s.parseJSON();
 	assert(doc);
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 14);
