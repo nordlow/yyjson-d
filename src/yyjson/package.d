@@ -12,11 +12,11 @@ struct Document {
 pure nothrow @nogc:
 	@disable this(this);
 	bool opCast(T : bool)() const scope => _doc !is null;
-	yyjson_doc* _doc;
+	private yyjson_doc* _doc;
 }
 
 struct Options {
-	yyjson_read_flag _flag;
+	private yyjson_read_flag _flag;
 }
 
 /** Error information for JSON reader. */
@@ -27,7 +27,9 @@ alias ReadError = yyjson_read_err;
  +/
 Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @nogc {
 	ReadError err;
-    return typeof(return)(yyjson_read_opts(data.ptr, data.length, options._flag, null, &err));
+    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
+	assert(err.code == 0, "TODO: return Result failure error using `err` fields");
+	return typeof(return)(err.code == 0 ? doc : doc);
 }
 
 @safe pure nothrow @nogc unittest {
