@@ -11,15 +11,23 @@ module yyjson;
 struct Document {
 pure nothrow @nogc:
 	@disable this(this);
-	this(yyjson_doc* doc) in(doc) { this._doc = doc; }
-	~this() {
-		// TODO: yyjson_doc_free(_doc);
+	~this() @trusted {
+		version (none) // TODO: enable
+		if (_doc) {
+			if (_doc.str_pool)
+				_doc.alc.free(_doc.alc.ctx, _doc.str_pool);
+			_doc.alc.free(_doc.alc.ctx, _doc);
+			_doc.alc = typeof(_doc.alc).init;
+		}
 	}
-    // TODO: pragma(inline, true):
+	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
+
+// TODO: pragma(inline, true):
+
 	bool opCast(T : bool)() const scope => _doc !is null;
 
 	/++ Returns: root value or `null` if `_doc` is `null`. +/
-	inout(Value) root() inout scope => typeof(return)(_doc ? _doc.root : null);
+	const(Value) root() const scope => typeof(return)(_doc ? _doc.root : null);
 
 	/++ Returns: total number of bytes read (nonzero). +/
 	size_t byteCount() const scope => _doc.dat_read;
@@ -71,9 +79,21 @@ import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
 import core.stdc.stdint : uint32_t, uint64_t, int64_t;
+void yyjson_doc_free(yyjson_doc *doc);
 yyjson_doc *yyjson_read_opts(scope const(char)* dat,
                              size_t len,
                              yyjson_read_flag flg,
                              const yyjson_alc *alc,
                              yyjson_read_err *err);
+struct yyjson_alc {
+pure nothrow @nogc:
+    /** Same as libc's malloc(size), should not be NULL. */
+	void* function(void* ctx, size_t size) malloc;
+    /** Same as libc's realloc(ptr, size), should not be NULL. */
+	void* function(void* ctx, void* ptr, size_t old_size, size_t size) realloc;
+    /** Same as libc's free(ptr), should not be NULL. */
+	void function(void* ctx, void* ptr) free;
+    /** A context for malloc/realloc/free, can be NULL. */
+    void *ctx;
+}
 }
