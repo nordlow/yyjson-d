@@ -70,8 +70,8 @@ pure nothrow @nogc:
 
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
-	const(char)* strz() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
-	const(char)[] str() const scope @trusted => strz[0..strlen(strz)];
+	const(char)* cstr() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
+	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
 
 	private yyjson_val* _val;
