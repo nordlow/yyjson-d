@@ -67,63 +67,10 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	assert(root);
 }
 
-// import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
+import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
 import core.stdc.stdint : uint32_t, uint64_t, int64_t;
-
-/** Payload of a JSON value (8 bytes). */
-union yyjson_val_uni {
-    uint64_t    u64;
-    int64_t     i64;
-    double      f64;
-    const char *str;
-    void       *ptr;
-    size_t      ofs;
-}
-
-/**
- Immutable JSON value, 16 bytes.
- */
-struct yyjson_val {
-    uint64_t tag; /**< type, subtype and length */
-    yyjson_val_uni uni; /**< payload */
-}
-
-struct yyjson_alc {
-    /** Same as libc's malloc(size), should not be NULL. */
-	void* function(void* ctx, size_t size) malloc;
-    /** Same as libc's realloc(ptr, size), should not be NULL. */
-	void* function(void* ctx, void* ptr, size_t old_size, size_t size) realloc;
-    /** Same as libc's free(ptr), should not be NULL. */
-	extern (C) void function(void* ctx, void* ptr) free;
-    /** A context for malloc/realloc/free, can be NULL. */
-    void *ctx;
-}
-
-struct yyjson_doc {
-    /** Root value of the document (nonnull). */
-    yyjson_val *root;
-    /** Allocator used by document (nonnull). */
-    yyjson_alc alc;
-    /** The total number of bytes read when parsing JSON (nonzero). */
-    size_t dat_read;
-    /** The total number of value read when parsing JSON (nonzero). */
-    size_t val_read;
-    /** The string pool used by JSON values (nullable). */
-    char *str_pool;
-}
-
-alias yyjson_read_flag = uint32_t;
-alias yyjson_read_code = uint32_t;
-struct yyjson_read_err {
-    /** Error code, see `yyjson_read_code` for all possible values. */
-    yyjson_read_code code;
-    /** Error message, constant, no need to free (NULL if success). */
-    const char *msg;
-    /** Error byte position for input data (0 if success). */
-    size_t pos;
-}
 yyjson_doc *yyjson_read_opts(scope const(char)* dat,
                              size_t len,
                              yyjson_read_flag flg,
