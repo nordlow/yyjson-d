@@ -1,5 +1,4 @@
-/** Idiomatic D-style wrapper around yyjson C API mimicing
-    https://dlang.org/library/std/json/parse_json.html.
+/** D-wrapper around `yyjson` mimicing `std.json`.
  */
 module yyjson;
 
