@@ -33,8 +33,8 @@ pure nothrow @nogc:
 
 	/++ Returns: total number of (node) values read (nonzero). +/
 	size_t valueCount() const scope => _doc.val_read;
-private:
-	yyjson_doc* _doc;
+
+	private yyjson_doc* _doc;
 }
 
 /++ Type of a JSON value (3 bit). +/
