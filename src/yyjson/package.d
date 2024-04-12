@@ -92,6 +92,18 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	return typeof(return)(err.code == 0 ? doc : doc);
 }
 
+/// boolean
+@safe pure nothrow @nogc unittest {
+	const s = `false`;
+	auto doc = s.parseJSON(Options.init);
+	assert(doc);
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 1);
+	auto root = doc.root;
+	assert(root);
+	assert(root.type == ValueType.BOOL);
+}
+
 /// string
 @safe pure nothrow @nogc unittest {
 	const s = `"alpha"`;
