@@ -150,17 +150,14 @@ import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
 import core.stdc.stdint : uint32_t, uint64_t, int64_t;
-void yyjson_doc_free(yyjson_doc *doc);
 yyjson_doc *yyjson_read_opts(scope const(char)* dat,
                              size_t len,
                              yyjson_read_flag flg,
                              const yyjson_alc *alc,
                              yyjson_read_err *err);
-
 alias MallocFn = void* function(void* ctx, size_t size);
 alias ReallocFn = void* function(void* ctx, void* ptr, size_t old_size, size_t size);
 alias FreeFn = void function(void* ctx, void* ptr);
-
 struct yyjson_alc {
 pure nothrow @nogc:
     /** Same as libc's malloc(size), should not be NULL. */
