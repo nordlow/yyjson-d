@@ -33,6 +33,7 @@ pure nothrow @nogc:
 
 	/++ Returns: total number of (node) values read (nonzero). +/
 	size_t valueCount() const scope => _doc.val_read;
+	private alias nodeCount = valueCount;
 
 	private yyjson_doc* _doc;
 }
