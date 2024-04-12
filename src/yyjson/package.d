@@ -38,6 +38,26 @@ private:
 	yyjson_doc* _doc;
 }
 
+/++ Type of a JSON value (3 bit). +/
+enum ValueType : yyjson_type {
+	/** No type, invalid. */
+	NONE = YYJSON_TYPE_NONE,
+	/** Raw string type, no subtype. */
+	RAW = YYJSON_TYPE_RAW,
+	/** Null type: `null` literal, no subtype. */
+	NULL = YYJSON_TYPE_NULL,
+	/** Boolean type, subtype: TRUE, FALSE. */
+	BOOL = YYJSON_TYPE_BOOL,
+	/** Number type, subtype: UINT, SINT, REAL. */
+	NUM = YYJSON_TYPE_NUM,
+	/** String type, subtype: NONE, NOESC. */
+	STR = YYJSON_TYPE_STR,
+	/** Array type, no subtype. */
+	ARR = YYJSON_TYPE_ARR,
+	/** Object type, no subtype. */
+	OBJ = YYJSON_TYPE_OBJ,
+}
+
 /++ JSON Value.
 	TODO: Wrap in `Result` type.
  +/
@@ -45,6 +65,7 @@ struct Value {
 pure nothrow @nogc:
 	@disable this(this);
 	bool opCast(T : bool)() const scope => _val !is null;
+	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 	private yyjson_val* _val;
 }
 
@@ -73,6 +94,7 @@ Document parseJSON(in char[] data, in Options options) @trusted pure nothrow @no
 	assert(doc.valueCount == 5);
 	auto root = doc.root;
 	assert(root);
+	assert(root.type == ValueType.OBJ);
 }
 
 import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
