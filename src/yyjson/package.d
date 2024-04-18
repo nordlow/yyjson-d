@@ -199,21 +199,22 @@ version (none)
 	}
 }
 
-// TODO: Define operator members of Byte struct
-private double bytesPer(T)(in T num, in Duration dur)
-	=> (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
+version (unittest) {
+private:
+double bytesPer(T)(in T num, in Duration dur)
+=> (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 
-private struct Path {
+struct Path {
 	this(string str) pure nothrow @nogc {
 		this.str = str;
 	}
 	string str;
-pure nothrow @nogc:
+	pure nothrow @nogc:
 	bool opCast(T : bool)() const scope => str !is null;
 	string toString() const @property => str;
 }
 
-private struct DirPath {
+struct DirPath {
 	this(string path) pure nothrow @nogc {
 		this.path = Path(path);
 	}
@@ -224,8 +225,8 @@ private struct DirPath {
 /++ Get path to home directory.
 	See_Also: `tempDir`
 	See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
- +/
-private DirPath homeDir() {
+	+/
+DirPath homeDir() {
 	import std.process : environment;
     version(Windows) {
         // On Windows, USERPROFILE is typically used, but HOMEPATH is an alternative
@@ -241,6 +242,7 @@ private DirPath homeDir() {
 			return typeof(return)(home);
     }
     throw new Exception("No home directory environment variable is set.");
+}
 }
 
 import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
