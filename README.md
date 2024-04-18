@@ -1,6 +1,7 @@
 # yyjson-d
 
-[yyjson](https://github.com/ibireme/yyjson) D wrappers compliant with Phobos's std.json.
+[yyjson](https://github.com/ibireme/yyjson) D wrapper. When possible compliant
+with Phobos's `std.json`.
 
 Automatically provisions `libyyjson` locally via `provision.sh`.
 
