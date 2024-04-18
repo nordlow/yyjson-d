@@ -10,6 +10,8 @@ import nxt.result;
 @safe:
 
 /++ JSON Document.
+	TODO: Turn into a result type being either a non-null pointer or an error type.
+	Descriminator can be least significant bit.
  +/
 struct Document {
 pure nothrow @nogc:
