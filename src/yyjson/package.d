@@ -77,6 +77,21 @@ pure nothrow @nogc:
 }
 alias JSONValue = Value; // `std.json` compliance
 
+/++ Read flag.
+	See: `yyjson_read_flag` in yyjson.h.
+ +/
+enum ReadFlag : yyjson_read_flag {
+	NOFLAG = YYJSON_READ_NOFLAG,
+	INSITU = YYJSON_READ_INSITU,
+	STOP_WHEN_DONE = YYJSON_READ_STOP_WHEN_DONE,
+	ALLOW_TRAILING_COMMAS = YYJSON_READ_ALLOW_TRAILING_COMMAS,
+	ALLOW_COMMENTS = YYJSON_READ_ALLOW_COMMENTS,
+	ALLOW_INF_AND_NAN = YYJSON_READ_ALLOW_INF_AND_NAN,
+	NUMBER_AS_RAW = YYJSON_READ_NUMBER_AS_RAW,
+	ALLOW_INVALID_UNICODE = YYJSON_READ_ALLOW_INVALID_UNICODE,
+	BIGNUM_AS_RAW = YYJSON_READ_BIGNUM_AS_RAW,
+}
+
 struct Options {
 	enum none = typeof(this).init;
 	private yyjson_read_flag _flag;
