@@ -149,10 +149,22 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.ARR);
 }
 
-/// object
+/// array with trailing comma
 @safe pure nothrow @nogc unittest {
-	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3]}`;
-	auto doc = s.parseJSON();
+	const s = `[1,2,3,]`;
+	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	assert(doc);
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 4);
+	auto root = doc.root;
+	assert(root);
+	assert(root.type == ValueType.ARR);
+}
+
+/// object with trailing commas
+@safe pure nothrow @nogc unittest {
+	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
+	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 14);
