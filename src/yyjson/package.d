@@ -178,7 +178,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.OBJ);
 }
 
-version (yyjson_dub_benchmark)
+version (yyjson_dub_benchmark) {
 @safe unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
@@ -246,6 +246,7 @@ private DirPath homeDir() {
 			return typeof(return)(home);
     }
     throw new Exception("No home directory environment variable is set.");
+}
 }
 
 import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
