@@ -3,6 +3,7 @@
 module yyjson;
 
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
+import nxt.result;
 
 @safe:
 
