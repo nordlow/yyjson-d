@@ -192,10 +192,13 @@ version (none)
 				debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
-				src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-				debug const dur = sw.peek;
-				const mbps = src.length.bytesPer(dur) * 1e-6;
-				debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur);
+				if (auto doc = src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS))) {
+					debug const dur = sw.peek;
+					const mbps = src.length.bytesPer(dur) * 1e-6;
+					debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+				} else {
+					debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
+				}
 			}();
 	}
 }
