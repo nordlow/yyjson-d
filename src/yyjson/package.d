@@ -173,6 +173,65 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.OBJ);
 }
 
+version (none)
+@safe unittest {
+	import std.file : dirEntries, SpanMode;
+	import std.path : buildPath, baseName;
+	import std.mmfile : MmFile;
+	const root = homeDir.str.buildPath(".dub/packages.all");
+	foreach (dent; dirEntries(root, SpanMode.depth)) {
+		if (dent.isDir)
+			continue;
+		if (dent.baseName == "dub.json")
+			() @trusted {
+				scope mmfile = new MmFile(dent.name);
+				import std.stdio : writeln;
+				debug writeln("Parsing ", dent.name);
+				(cast(char[])mmfile[]).parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+			}();
+	}
+}
+
+struct Path {
+	this(string str) pure nothrow @nogc {
+		this.str = str;
+	}
+	string str;
+pure nothrow @nogc:
+	bool opCast(T : bool)() const scope => str !is null;
+	string toString() const @property => str;
+}
+
+struct DirPath {
+	this(string path) pure nothrow @nogc {
+		this.path = Path(path);
+	}
+	Path path;
+	alias path this;
+}
+
+/++ Get path to home directory.
+	See_Also: `tempDir`
+	See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
+ +/
+private DirPath homeDir() {
+	import std.process : environment;
+    version(Windows) {
+        // On Windows, USERPROFILE is typically used, but HOMEPATH is an alternative
+		if (const home = environment.get("USERPROFILE"))
+			return typeof(return)(home);
+        // Fallback to HOMEDRIVE + HOMEPATH
+        const homeDrive = environment.get("HOMEDRIVE");
+        const homePath = environment.get("HOMEPATH");
+        if (homeDrive && homePath)
+            return typeof(return)(buildPath(homeDrive, homePath));
+    } else {
+        if (const home = environment.get("HOME"))
+			return typeof(return)(home);
+    }
+    throw new Exception("No home directory environment variable is set.");
+}
+
 import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
