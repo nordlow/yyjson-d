@@ -8,7 +8,6 @@ import nxt.result;
 @safe:
 
 /++ JSON Document.
-	TODO: Wrap in `Result` type.
  +/
 struct Document {
 pure nothrow @nogc:
@@ -107,12 +106,12 @@ alias ReadError = yyjson_read_err;
 /++ Parse JSON Document from `data`.
     See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
+Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
 	assert(err.code == 0, "TODO: return Result failure error using `err` fields");
-	return typeof(return)(err.code == 0 ? doc : doc);
+	return (err.code == 0 ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
 
 /// boolean
@@ -120,9 +119,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `false`;
 	auto doc = s.parseJSON();
 	assert(doc);
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 1);
-	auto root = doc.root;
+	assert((*doc).byteCount == s.length);
+	assert((*doc).valueCount == 1);
+	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.BOOL);
 }
@@ -132,9 +131,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `"alpha"`;
 	auto doc = s.parseJSON();
 	assert(doc);
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 1);
-	auto root = doc.root;
+	assert((*doc).byteCount == s.length);
+	assert((*doc).valueCount == 1);
+	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
 	assert(root.str == "alpha");
@@ -145,9 +144,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3]`;
 	auto doc = s.parseJSON();
 	assert(doc);
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 4);
-	auto root = doc.root;
+	assert((*doc).byteCount == s.length);
+	assert((*doc).valueCount == 4);
+	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 }
@@ -157,9 +156,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3,]`;
 	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 4);
-	auto root = doc.root;
+	assert((*doc).byteCount == s.length);
+	assert((*doc).valueCount == 4);
+	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 }
@@ -169,9 +168,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 14);
-	auto root = doc.root;
+	assert((*doc).byteCount == s.length);
+	assert((*doc).valueCount == 14);
+	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 }
