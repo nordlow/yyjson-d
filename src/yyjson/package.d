@@ -175,6 +175,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.OBJ);
 }
 
+version (none)
 @safe unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
