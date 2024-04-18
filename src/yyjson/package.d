@@ -36,7 +36,7 @@ pure nothrow @nogc:
 	size_t valueCount() const scope => _doc.val_read;
 	private alias nodeCount = valueCount;
 
-	private yyjson_doc* _doc;
+	private yyjson_doc* _doc; // non-null
 }
 
 /++ Type of a JSON value (3 bit). +/
@@ -110,7 +110,8 @@ Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options 
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
-	assert(err.code == 0, "TODO: return Result failure error using `err` fields");
+	// assert(err.code == 0, "TODO: return Result failure error using `err` fields");
+	// TODO: Pass err.code to Result
 	return (err.code == 0 ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
 
