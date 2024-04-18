@@ -2,6 +2,8 @@
  */
 module yyjson;
 
+import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
+
 @safe:
 
 /++ JSON Document.
@@ -173,26 +175,34 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.OBJ);
 }
 
-version (none)
 @safe unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
 	import std.mmfile : MmFile;
 	const root = homeDir.str.buildPath(".dub/packages.all");
-	foreach (dent; dirEntries(root, SpanMode.depth)) {
+	foreach (ref dent; dirEntries(root, SpanMode.depth)) { // TODO: Use overload of dirEntries where depth-span can be set
 		if (dent.isDir)
 			continue;
 		if (dent.baseName == "dub.json")
 			() @trusted {
 				scope mmfile = new MmFile(dent.name);
 				import std.stdio : writeln;
-				debug writeln("Parsing ", dent.name);
-				(cast(char[])mmfile[]).parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				debug writeln("Parsing ", dent.name, " ...");
+				const src = (cast(char[])mmfile[]);
+				auto sw = StopWatch(AutoStart.yes);
+				src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				debug const dur = sw.peek;
+				const mbps = src.length.bytesPer(dur) * 1e-6;
+				debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur);
 			}();
 	}
 }
 
-struct Path {
+// TODO: Define operator members of Byte struct
+private double bytesPer(T)(in T num, in Duration dur)
+	=> (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
+
+private struct Path {
 	this(string str) pure nothrow @nogc {
 		this.str = str;
 	}
@@ -202,7 +212,7 @@ pure nothrow @nogc:
 	string toString() const @property => str;
 }
 
-struct DirPath {
+private struct DirPath {
 	this(string path) pure nothrow @nogc {
 		this.path = Path(path);
 	}
