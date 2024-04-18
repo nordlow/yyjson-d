@@ -2,6 +2,8 @@
  */
 module yyjson;
 
+// version = yyjson_dub_benchmark;
+
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 import nxt.result;
 
@@ -176,7 +178,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.OBJ);
 }
 
-version (none)
+version (yyjson_dub_benchmark)
 @safe unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
@@ -189,13 +191,14 @@ version (none)
 			() @trusted {
 				scope mmfile = new MmFile(dent.name);
 				import std.stdio : writeln;
-				debug writeln("Parsing ", dent.name, " ...");
+				// debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
-				if (auto doc = src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS))) {
-					debug const dur = sw.peek;
-					const mbps = src.length.bytesPer(dur) * 1e-6;
-					debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+				auto doc = src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				debug const dur = sw.peek;
+				const mbps = src.length.bytesPer(dur) * 1e-6;
+				if (doc) {
+ 					// debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 				} else {
 					debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 				}
@@ -203,22 +206,19 @@ version (none)
 	}
 }
 
-version (unittest) {
-private:
-double bytesPer(T)(in T num, in Duration dur)
+private double bytesPer(T)(in T num, in Duration dur)
 => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 
-struct Path {
+private struct Path {
 	this(string str) pure nothrow @nogc {
 		this.str = str;
 	}
 	string str;
 	pure nothrow @nogc:
 	bool opCast(T : bool)() const scope => str !is null;
-	string toString() const @property => str;
 }
 
-struct DirPath {
+private struct DirPath {
 	this(string path) pure nothrow @nogc {
 		this.path = Path(path);
 	}
@@ -230,7 +230,7 @@ struct DirPath {
 	See_Also: `tempDir`
 	See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
 	+/
-DirPath homeDir() {
+private DirPath homeDir() {
 	import std.process : environment;
     version(Windows) {
         // On Windows, USERPROFILE is typically used, but HOMEPATH is an alternative
@@ -246,7 +246,6 @@ DirPath homeDir() {
 			return typeof(return)(home);
     }
     throw new Exception("No home directory environment variable is set.");
-}
 }
 
 import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
