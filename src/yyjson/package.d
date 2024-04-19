@@ -118,7 +118,9 @@ enum ReadCode : yyjson_read_code {
 	ERROR_FILE_READ = YYJSON_READ_ERROR_FILE_READ,
 }
 
-/++ Read error. +/
+/++ Read error.
+	Same memory layout as `yyjson_read_err`.
+ +/
 struct ReadError {
     /** Error code, see `yyjson_read_code` for all possible values. */
 	ReadCode code;
