@@ -141,7 +141,6 @@ Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options 
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
-	// assert(err.code == YYJSON_READ_SUCCESS, "TODO: return Result failure error using `err` fields");
 	// TODO: Pass err to Result
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
