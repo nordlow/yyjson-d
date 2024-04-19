@@ -118,14 +118,21 @@ enum ReadCode : yyjson_read_code {
 	ERROR_FILE_READ = YYJSON_READ_ERROR_FILE_READ,
 }
 
+/++ Read error. +/
+struct ReadError {
+    /** Error code, see `yyjson_read_code` for all possible values. */
+	ReadCode code;
+    /** Error message, constant, no need to free (NULL if success). */
+    const char *msg;
+    /** Error byte position for input data (0 if success). */
+    size_t pos;
+}
+
 struct Options {
 	enum none = typeof(this).init;
 	private yyjson_read_flag _flag;
 }
 alias JSONOptions = Options; // `std.json` compliance
-
-/** Error information for JSON reader. */
-alias ReadError = yyjson_read_err;
 
 /++ Parse JSON Document from `data`.
     See_Also: https://dlang.org/library/std/json/parse_json.html
@@ -133,10 +140,10 @@ alias ReadError = yyjson_read_err;
 Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	ReadError err;
-    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, &err);
+    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	// assert(err.code == YYJSON_READ_SUCCESS, "TODO: return Result failure error using `err` fields");
-	// TODO: Pass err.code to Result
-	return (err.code == YYJSON_READ_SUCCESS ? typeof(return)(Document(doc)) : typeof(return).invalid);
+	// TODO: Pass err to Result
+	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
 
 /// boolean
