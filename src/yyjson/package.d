@@ -139,18 +139,19 @@ alias JSONOptions = Options; // `std.json` compliance
 /++ Parse JSON Document from `data`.
     See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
-in(maxDepth == -1, "Setting `maxDepth` is not supported") {
+Result!Document parseJSONDocument(in char[] data, in Options options = Options.none) @trusted pure nothrow @nogc {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	// TODO: Pass err to Result
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
 
+// TODO: Result!Document parseJSONDocument(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
+
 /// boolean
 @safe pure nothrow @nogc unittest {
 	const s = `false`;
-	auto doc = s.parseJSON();
+	auto doc = s.parseJSONDocument();
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 1);
@@ -162,7 +163,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// string
 @safe pure nothrow @nogc unittest {
 	const s = `"alpha"`;
-	auto doc = s.parseJSON();
+	auto doc = s.parseJSONDocument();
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 1);
@@ -175,7 +176,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array
 @safe pure nothrow @nogc unittest {
 	const s = `[1,2,3]`;
-	auto doc = s.parseJSON();
+	auto doc = s.parseJSONDocument();
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 4);
@@ -187,7 +188,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array with trailing comma
 @safe pure nothrow @nogc unittest {
 	const s = `[1,2,3,]`;
-	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 4);
@@ -199,7 +200,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// object with trailing commas
 @safe pure nothrow @nogc unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
-	auto doc = s.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 14);
@@ -224,7 +225,7 @@ version (yyjson_dub_benchmark) {
 				// debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
-				auto doc = src.parseJSON(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				auto doc = src.parseJSONDocument(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 				debug const dur = sw.peek;
 				const mbps = src.length.bytesPer(dur) * 1e-6;
 				if (doc) {
