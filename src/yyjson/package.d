@@ -146,12 +146,16 @@ Result!Document parseJSONDocument(in char[] data, in Options options = Options.n
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return).invalid);
 }
 
-// TODO: Result!Document parseJSONDocument(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
+///  Compliance with `std.json`.
+Result!Document parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
+in(maxDepth == -1, "Setting `maxDepth` is not supported") {
+	return data.parseJSONDocument(options);
+}
 
 /// boolean
 @safe pure nothrow @nogc unittest {
 	const s = `false`;
-	auto doc = s.parseJSONDocument();
+	auto doc = s.parseJSON();
 	assert(doc);
 	assert((*doc).byteCount == s.length);
 	assert((*doc).valueCount == 1);
