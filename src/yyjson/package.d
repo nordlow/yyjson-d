@@ -79,6 +79,38 @@ pure nothrow @nogc:
 	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
 
+	version (none)
+	auto arrayRange() in(type == ValueType.ARR) {
+		struct Result {
+		pure nothrow @nogc:
+			@disable this(this);
+			private this(yyjson_val* val) {
+				yyjson_arr_iter_init(val, _iter);
+			}
+			bool empty() scope const => !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
+			Value front() return scope in(!empty) => typeof(return)(_val);
+			auto popFront() in(!empty) {
+				_val = yyjson_arr_iter_next(_iter);
+			}
+		private:
+			yyjson_arr_iter *_iter;
+			yyjson_val* _val;
+		}
+		return Result(this._val);
+ 	}
+
+	version (none)
+	auto objectRange() in(type == ValueType.OBJ) {
+		struct Result {
+		pure nothrow @nogc:
+			@disable this(this);
+			private this(yyjson_val* val) {
+				yyjson_obj_iter_init(val, _iter);
+			}
+			private yyjson_obj_iter *_iter;
+		}
+		return Result(this._val);
+	}
 	private yyjson_val* _val;
 }
 alias JSONValue = Value; // `std.json` compliance
@@ -307,4 +339,8 @@ pure nothrow @nogc:
     /** A context for malloc/realloc/free, can be NULL. */
     void *ctx;
 }
+bool yyjson_arr_iter_init(yyjson_val *arr,
+                          yyjson_arr_iter *iter);
+bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
+yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 }
