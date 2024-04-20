@@ -79,7 +79,7 @@ pure nothrow @nogc:
 	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
 
-	version (none)
+	version (none) // TODO: Enable when used functions are non-static
 	auto arrayRange() in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @nogc:
@@ -99,7 +99,7 @@ pure nothrow @nogc:
 		return Result(this._val);
  	}
 
-	version (none)
+	version (none) // TODO: Enable when used functions are non-static
 	auto objectRange() in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @nogc:
