@@ -156,7 +156,7 @@ struct ReadError {
     /** Error code, see `yyjson_read_code` for all possible values. */
 	ReadCode code;
     /** Error message, constant, no need to free (NULL if success). */
-    const char *msg;
+    const(char)* msg;
     /** Error byte position for input data (0 if success). */
     size_t pos;
 }

@@ -46,6 +46,16 @@ struct Result(T, E = void) {
 		_isValid = true;
 		return this;
 	}
+	static if (!is(E == void)) {
+		ref typeof(this) opAssign(E error) @trusted {
+			static if (__traits(isPOD, E))
+				_error = error;
+			else
+				() @trusted { move(error, _error); }(); /+ TODO: remove when compiler does this +/
+			_isValid = false;
+			return this;
+		}
+	}
 @property:
 	ref inout(T) value() inout scope @trusted return in(isValid) => _value;
 	static if (!is(E == void)) {
@@ -122,7 +132,7 @@ private:
 	assert(r2.value == T(43));
 }
 
-/// result of point and error
+/// result of pointer and error enum
 @safe pure nothrow unittest {
 	alias V = ulong;
 	alias T = V*;
@@ -136,13 +146,33 @@ private:
 	assert(r1.isError);
 	assert(r1.error == E.init);
 	assert(r1.error == E.first);
-	T t = new V(42);
-	r1 = move(t);
+	T v = new V(42);
+	r1 = move(v);
 	assert(r1 != R(T.init));
 	assert(**r1 == V(42));
+}
+
+/// result of pointer and error enum
+@safe pure nothrow unittest {
+	alias V = ulong;
+	alias T = V*;
+	enum E { first, second }
+	alias R = Result!(T, E);
 	R r2 = new V(43);
 	assert(**r2 == V(43));
 	assert(*r2.value == V(43));
+}
+
+/// result of pointer and error enum
+@safe pure nothrow unittest {
+	alias V = ulong;
+	alias T = V*;
+	enum E { first, second }
+	alias R = Result!(T, E);
+	R r2 = E.first;
+	assert(r2.error == E.first);
+	r2 = E.second;
+	assert(r2.error == E.second);
 }
 
 version (unittest) {
