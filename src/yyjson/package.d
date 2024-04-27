@@ -5,7 +5,7 @@ module yyjson;
 // version = yyjson_dub_benchmark;
 
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
-import nxt.result;
+import nxt.result : Result;
 
 @safe:
 
