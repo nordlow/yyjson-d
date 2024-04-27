@@ -19,7 +19,16 @@ struct Result(T, E = void) {
 			() @trusted { moveEmplace(value, _value); }(); /+ TODO: remove when compiler does this +/
 		_isValid = true;
 	}
-	~this() {
+	static if (!is(E == void)) {
+		this(E error) {
+			static if (__traits(isPOD, T))
+				_error = error;
+			else
+				() @trusted { moveEmplace(error, _error); }(); /+ TODO: remove when compiler does this +/
+			_isValid = false;
+		}
+	}
+	~this() @trusted {
 		import core.internal.traits : hasElaborateDestructor;
 		if (hasValue) {
 			static if (hasElaborateDestructor!T)
