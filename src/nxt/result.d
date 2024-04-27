@@ -17,7 +17,7 @@ struct Result(T, E = void) {
 			_value = value;
 		else
 			() @trusted { moveEmplace(value, _value); }(); /+ TODO: remove when compiler does this +/
-		_isValid = true;
+		_isValue = true;
 	}
 	static if (!is(E == void)) {
 		this(E error) {
@@ -25,12 +25,12 @@ struct Result(T, E = void) {
 				_error = error;
 			else
 				() @trusted { moveEmplace(error, _error); }(); /+ TODO: remove when compiler does this +/
-			_isValid = false;
+			_isValue = false;
 		}
 	}
 	~this() @trusted {
 		import core.internal.traits : hasElaborateDestructor;
-		if (hasValue) {
+		if (isValue) {
 			static if (hasElaborateDestructor!T)
 				.destroy(_value);
 		} else {
@@ -43,7 +43,7 @@ struct Result(T, E = void) {
 			_value = value;
 		else
 			() @trusted { move(value, _value); }(); /+ TODO: remove when compiler does this +/
-		_isValid = true;
+		_isValue = true;
 		return this;
 	}
 	static if (!is(E == void)) {
@@ -52,38 +52,41 @@ struct Result(T, E = void) {
 				_error = error;
 			else
 				() @trusted { move(error, _error); }(); /+ TODO: remove when compiler does this +/
-			_isValid = false;
+			_isValue = false;
 			return this;
 		}
 	}
 @property:
-	ref inout(T) value() inout scope @trusted return in(isValid) => _value;
+	ref inout(T) value() inout scope @trusted return in(isValue) => _value;
 	static if (!is(E == void)) {
-		ref inout(E) error() inout scope @trusted return in(!isValid) => _error;
+		ref inout(E) error() inout scope @trusted return in(!isValue) => _error;
 	}
 	// ditto
 	ref inout(T) opUnary(string op)() inout scope return if (op == "*") => value;
-	bool opEquals(in T that) const scope => _isValid ? value == that : false;
-	bool opEquals(scope const ref T that) const scope => _isValid ? value == that : false;
+	bool opEquals(in T that) const scope => _isValue ? value == that : false;
+	bool opEquals(scope const ref T that) const scope => _isValue ? value == that : false;
 	bool opEquals(scope const ref typeof(this) that) const scope @trusted {
-		if (this.isValid && that.isValid)
+		if (this.isValue && that.isValue)
 			return this._value == that._value;
-		return this.isValid == that.isValid;
+		return this.isValue == that.isValue;
 	}
-	string toString() inout scope pure @trusted {
+	string toString() const scope pure @trusted {
 		import std.conv : to;
-		return isValid ? _value.to!string : "invalid";
+		static if (!is(E == void)) {
+			return isValue ? _value.to!string : _error.to!string;
+		} else {
+			return isValue ? _value.to!string : "invalid";
+		}
 	}
 pure nothrow @nogc:
-	bool isValid() const scope => _isValid;
-	alias hasValue = isValid;
+	bool isValue() const scope => _isValue;
 	static if (!is(E == void)) {
-		bool isError() const scope => !_isValid;
+		bool isError() const scope => !_isValue;
 	}
-	bool opCast(T : bool)() const scope => _isValid;
+	bool opCast(T : bool)() const scope => _isValue;
 	static typeof(this) invalid() => typeof(this).init;
 private:
-	/++ TODO: avoid `_isValid` when `T` is a pointer and `_error.sizeof` <=
+	/++ TODO: avoid `_isValue` when `T` is a pointer and `_error.sizeof` <=
 		`size_t.sizeof:` by making some part part of pointer the
 		discriminator for a defined value preferrably the lowest bit.
      +/
@@ -95,7 +98,7 @@ private:
 	} else {
 	    T _value;
 	}
-	bool _isValid;
+	bool _isValue;
 }
 
 /// to string conversion
@@ -122,7 +125,7 @@ private:
 	assert(!r1);
 	assert(r1 == R.invalid);
 	assert(r1 != R(T.init));
-	assert(!r1.isValid);
+	assert(!r1.isValue);
 	T t = T(42);
 	r1 = move(t);
 	assert(r1 != R(T.init));
@@ -142,7 +145,7 @@ private:
 	assert(!r1);
 	assert(r1 == R.invalid);
 	assert(r1 != R(T.init));
-	assert(!r1.isValid);
+	assert(!r1.isValue);
 	assert(r1.isError);
 	assert(r1.error == E.init);
 	assert(r1.error == E.first);
