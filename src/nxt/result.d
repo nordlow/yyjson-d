@@ -10,6 +10,7 @@ module nxt.result;
 	- TODO: Add member visit()
  +/
 struct Result(T, E = void) {
+	private enum hasError = !is(E == void);
 	static if (!__traits(isPOD, T))
 		import core.lifetime : move, moveEmplace;
 	this(T value) {
@@ -19,7 +20,7 @@ struct Result(T, E = void) {
 			() @trusted { moveEmplace(value, _value); }(); /+ TODO: remove when compiler does this +/
 		_isValue = true;
 	}
-	static if (!is(E == void)) {
+	static if (hasError) {
 		this(E error) {
 			static if (__traits(isPOD, T))
 				_error = error;
@@ -46,7 +47,7 @@ struct Result(T, E = void) {
 		_isValue = true;
 		return this;
 	}
-	static if (!is(E == void)) {
+	static if (hasError) {
 		ref typeof(this) opAssign(E error) @trusted {
 			static if (__traits(isPOD, E))
 				_error = error;
@@ -58,7 +59,7 @@ struct Result(T, E = void) {
 	}
 @property:
 	ref inout(T) value() inout scope @trusted return in(isValue) => _value;
-	static if (!is(E == void)) {
+	static if (hasError) {
 		ref inout(E) error() inout scope @trusted return in(!isValue) => _error;
 	}
 	// ditto
@@ -72,7 +73,7 @@ struct Result(T, E = void) {
 	}
 	string toString() const scope pure @trusted {
 		import std.conv : to;
-		static if (!is(E == void)) {
+		static if (hasError) {
 			return isValue ? _value.to!string : _error.to!string;
 		} else {
 			return isValue ? _value.to!string : "invalid";
@@ -80,7 +81,7 @@ struct Result(T, E = void) {
 	}
 pure nothrow @nogc:
 	bool isValue() const scope => _isValue;
-	static if (!is(E == void)) {
+	static if (hasError) {
 		bool isError() const scope => !_isValue;
 	}
 	bool opCast(T : bool)() const scope => _isValue;
@@ -90,7 +91,7 @@ private:
 		`size_t.sizeof:` by making some part part of pointer the
 		discriminator for a defined value preferrably the lowest bit.
      +/
-	static if (!is(E == void)) {
+	static if (hasError) {
 		union {
 			T _value;
 			E _error;
