@@ -4,7 +4,7 @@ set -euo pipefail
 
 SOURCE_ROOT="yyjson"
 TARGET_ROOT="yyjson-build"
-tools=("cmake")
+tools=("cmake" "gcc")
 
 install_apt_packages_of_executables() {
 	local packages=()
