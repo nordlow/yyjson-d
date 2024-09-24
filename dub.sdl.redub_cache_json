@@ -1,0 +1,49 @@
+{
+	"authors": [
+		"Per Nordlöw <per.nordlow@gmail.com>"
+	],
+	"buildTypes": {
+		"unittest": {
+			"dflags": [
+				"-g",
+				"-checkaction=context",
+				"-allinst",
+				"-unittest",
+				"-cov",
+				"-cov=ctfe"
+			],
+			"dflags-dmd": [
+				"-debug"
+			],
+			"dflags-ldc": [
+				"--d-debug"
+			],
+			"dflags-posix-ldc": [
+				"-fsanitize=address"
+			]
+		}
+	},
+	"copyright": "Copyright © 2024, Per Nordlöw",
+	"description": "D wrapper for yyjson.",
+	"dflags": [
+		"-vcolumns",
+		"-preview=dip1000",
+		"-preview=in"
+	],
+	"importPaths": [
+		"src"
+	],
+	"lflags": [
+		"-L$PACKAGE_DIR/yyjson-build",
+		"-rpath=$PACKAGE_DIR/yyjson-build"
+	],
+	"libs": [
+		"yyjson"
+	],
+	"license": "BSL-1.0",
+	"name": "yyjson-d",
+	"preBuildCommands": [
+		"bash provision.sh"
+	],
+	"targetType": "library"
+}

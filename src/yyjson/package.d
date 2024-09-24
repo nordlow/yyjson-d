@@ -184,7 +184,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 /// boolean
-@safe pure nothrow @nogc unittest {
+@safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `false`;
 	auto doc = s.parseJSON();
 	assert(doc);
@@ -196,7 +196,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 /// string
-@safe pure nothrow @nogc unittest {
+@safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `"alpha"`;
 	auto doc = s.parseJSONDocument();
 	assert(doc);
@@ -209,7 +209,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 /// array
-@safe pure nothrow @nogc unittest {
+@safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
 	auto doc = s.parseJSONDocument();
 	assert(doc);
@@ -221,7 +221,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 /// array with trailing comma
-@safe pure nothrow @nogc unittest {
+@safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3,]`;
 	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
@@ -233,7 +233,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 /// object with trailing commas
-@safe pure nothrow @nogc unittest {
+@safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(doc);
@@ -245,7 +245,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 version (yyjson_dub_benchmark) {
-@safe unittest {
+@safe version(yyjson_test) unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
 	import std.mmfile : MmFile;

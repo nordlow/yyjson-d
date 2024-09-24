@@ -13,6 +13,7 @@ lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
 libs "yyjson"
 
 buildType "unittest" {
+   versions "yyjson_test"
    dflags "-g" "-checkaction=context" "-allinst" "-unittest" "-cov" "-cov=ctfe"
    dflags "-fsanitize=address" platform="posix-ldc"
    dflags "-debug" platform="dmd"
