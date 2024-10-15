@@ -26,7 +26,7 @@ pushd "${TARGET_ROOT}" > /dev/null
 install_apt_packages_of_executables "${tools[@]}"
 
 # ok to use "-march=native" because of no distribution
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-march=native" ../"${SOURCE_ROOT}"
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Dyyjson_api_inline=yyjson_api -march=native" ../"${SOURCE_ROOT}"
 make --quiet
 
 popd > /dev/null
