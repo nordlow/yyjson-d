@@ -17,12 +17,12 @@ struct Document {
 pure nothrow @nogc:
 	@disable this(this);
 	~this() @trusted {
-		if (_doc) {
-			if (_doc.str_pool)
-				(cast(FreeFn)(_doc.alc.free))(_doc.alc.ctx, _doc.str_pool);
-			(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
-			// uncommented because ASan complains about this: _doc.alc = typeof(_doc.alc).init;
-		}
+		if (!_doc)
+			return;
+		if (_doc.str_pool)
+			(cast(FreeFn)(_doc.alc.free))(_doc.alc.ctx, _doc.str_pool);
+		(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
+		// uncommented because ASan complains about this: _doc.alc = typeof(_doc.alc).init;
 	}
 	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
 
