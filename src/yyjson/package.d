@@ -10,7 +10,7 @@ import nxt.result : Result;
 
 @safe:
 
-/++ Immutable JSON Document.
+/++ "Immutable" JSON Document.
 	TODO: Turn into a result type being either a non-null pointer or an error type.
 	Descriminator can be least significant bit.
  +/
@@ -64,7 +64,7 @@ enum ValueType : yyjson_type {
 	OBJ = YYJSON_TYPE_OBJ,
 }
 
-/++ Immutable JSON Value (Reference Pointer). +/
+/++ "Immutable" JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
 pure nothrow @property:
@@ -104,14 +104,28 @@ pure nothrow @property:
 		return Result(this._val);
  	}
 
+	// TODO: Implement
 	auto objectRange() const in(type == ValueType.OBJ) {
 		struct Result {
-		pure nothrow @nogc:
+		pure nothrow @safe @nogc:
 			@disable this(this);
-			private this(const yyjson_val* val) @trusted {
-				yyjson_obj_iter_init(cast()val, _iter);
+			private this(const yyjson_val* obj) @trusted {
+				yyjson_obj_iter_init(cast()obj, &_iter);
+				// TODO: Functionize with `Value.popFront`:
+				if (yyjson_obj_iter_has_next(&_iter))
+					_val = yyjson_obj_iter_next(&_iter);
 			}
-			private yyjson_obj_iter *_iter;
+			bool empty() scope const @trusted => _val is null;
+			const(Value) front() return scope in(!empty) => typeof(return)(_val);
+			auto popFront() @trusted in(!empty) {
+				if (yyjson_obj_iter_has_next(&_iter))
+					_val = yyjson_obj_iter_next(&_iter);
+				else
+					_val = null;
+			}
+		private:
+			yyjson_obj_iter _iter;
+			yyjson_val* _val;
 		}
 		return Result(this._val);
 	}
@@ -469,13 +483,15 @@ size_t yyjson_arr_size(const yyjson_val *arr);
 const(yyjson_val) *yyjson_arr_get(const(yyjson_val) *arr, size_t idx);
 
 // array iterator:
-bool yyjson_arr_iter_init(const yyjson_val *arr,
-                          yyjson_arr_iter *iter);
+bool yyjson_arr_iter_init(const yyjson_val *arr, yyjson_arr_iter *iter);
 bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
 yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
 // object iterator:
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
+bool yyjson_obj_iter_has_next(yyjson_obj_iter *iter);
+yyjson_val *yyjson_obj_iter_next(yyjson_obj_iter *iter);
+
 }
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
