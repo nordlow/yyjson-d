@@ -307,14 +307,14 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// document from empty string
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = ``;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(!docR);
 }
 
 /// null
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `null`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
@@ -327,7 +327,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	foreach (const e; [false, true]) {
 		const s = e ? `true` : `false`;
-		auto docR = s.parseJSONDocument();
+		scope docR = s.parseJSONDocument();
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
@@ -345,7 +345,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
 	foreach (const e; -100 .. -1) {
 		const s = e.to!string;
-		auto docR = s.parseJSONDocument();
+		scope docR = s.parseJSONDocument();
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
@@ -358,7 +358,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
 	foreach (const e; 0 .. 100) {
 		const s = e.to!string;
-		auto docR = s.parseJSONDocument();
+		scope docR = s.parseJSONDocument();
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
@@ -370,7 +370,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// floating|real
 @safe pure /+@nogc+/ version(yyjson_test) unittest {
 	const s = `0.5`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
@@ -381,7 +381,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// string
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `"alpha"`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
@@ -395,7 +395,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
@@ -419,7 +419,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const string[n] keys = ["a", "b"];
 	const uint[n] vals = [1, 2];
 	const s = `{"a":1, "b":2}`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 5);
@@ -444,7 +444,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array allocation
 @safe pure nothrow version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
-	auto docR = s.parseJSONDocument();
+	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
@@ -466,7 +466,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// integers
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `1`;
-	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
@@ -479,7 +479,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array with trailing comma and comment
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3,] // a comment`;
-	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_COMMENTS));
+	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_COMMENTS));
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
@@ -492,7 +492,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// object with trailing commas
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
-	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 14);
