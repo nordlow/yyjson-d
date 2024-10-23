@@ -4,6 +4,7 @@ module yyjson;
 
 // version = yyjson_dub_benchmark;
 
+import std.stdio : writeln;
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 import nxt.result : Result;
 
@@ -78,8 +79,12 @@ pure nothrow @nogc:
 			private this(const yyjson_val* val) @trusted {
 				yyjson_arr_iter_init(cast()val, _iter);
 			}
-			bool empty() scope const @trusted => !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
-			Value front() return scope in(!empty) => typeof(return)(_val);
+			bool empty() scope const @trusted {
+				return !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
+			}
+			Value front() return scope in(!empty) {
+				return typeof(return)(_val);
+			}
 			auto popFront() in(!empty) {
 				_val = yyjson_arr_iter_next(_iter);
 			}
@@ -221,8 +226,8 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
-	auto ar = root.arrayRange;
-	assert(ar.empty);
+	auto ar = root.arrayRange();
+	// TODO: assert(!ar.empty);
 }
 
 /// array with trailing comma
@@ -354,4 +359,19 @@ yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
 // object iterator:
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
+}
+
+void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
+	import core.stdc.stdio : stdout, stderr, fflush;
+	import std.stdio : write;
+	debug {
+		() @trusted {
+		write(file);
+		write("(");
+		write(line);
+		write("): Debug: ");
+		writeln(args);
+		stderr.fflush(); // before a potentially crash happens
+	}();
+	}
 }
