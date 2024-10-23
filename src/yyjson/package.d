@@ -68,7 +68,7 @@ enum ValueType : yyjson_type {
 struct Value {
 	import core.stdc.string : strlen;
 pure nothrow @property:
-	/// Allocates with the GC!
+	/// `std.json` compliance. Allocates with the GC!
 	const(Value)[] array() const in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
 		typeof(return) res;
