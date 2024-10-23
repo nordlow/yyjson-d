@@ -1,16 +1,10 @@
 .dub
 docs.json
 docs/
-/yyjson-d
-*yyjson-d.so
-*yyjson-d.dylib
-*yyjson-d.dll
-*yyjson-d.a
-*yyjson-d.lib
-*yyjson-d-test-*
 *.exe
 *.pdb
 *.o
 *.obj
 *.lst
+bin
 yyjson-build
