@@ -88,6 +88,7 @@ pure nothrow @property:
 			yyjson_val* _val;
 			size_t _length;
 		scope pure nothrow @safe @nogc:
+		/+pragma(inline, true):+/
 			@disable this(this);
 			this(const yyjson_val* arr) @trusted {
 				_length = yyjson_arr_size(arr);
@@ -113,13 +114,21 @@ pure nothrow @property:
 		return Result(_val);
  	}
 
+	alias Key = Value;
+
+	struct ObjectKeyValue {
+		Key key;
+		Value value;
+	}
+
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
 		private:
 			yyjson_obj_iter _iter;
-			yyjson_val* _val;
+			yyjson_val* _key;
 			size_t _length;
 		scope pure nothrow @safe @nogc:
+		/+pragma(inline, true):+/
 			@disable this(this);
 			this(const yyjson_val* obj) @trusted {
 				_length = yyjson_obj_size(obj);
@@ -128,9 +137,9 @@ pure nothrow @property:
 			}
 			void nextFront() @trusted {
 				if (yyjson_obj_iter_has_next(&_iter))
-					_val = yyjson_obj_iter_next(&_iter);
+					_key = yyjson_obj_iter_next(&_iter);
 				else
-					_val = null;
+					_key = null;
 			}
 		public:
 			void popFront() in(!empty) {
@@ -145,16 +154,20 @@ pure nothrow @property:
 			// alias tryGetKey = findKey;
 		const @property:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
-			bool empty() => _val is null;
-			const(Value) front() return scope in(!empty) => typeof(return)(_val);
+			bool empty() => _key is null;
+			Key frontKey() return scope in(!empty) => typeof(return)(_key);
+			const(Value) frontValue() return scope @trusted in(!empty) {
+				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
+			}
+			const(ObjectKeyValue) front() return scope => typeof(return)(frontKey, frontValue);
 		}
 		return Result(_val);
  	}
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
-// pragma(inline, true):
-
 @property const nothrow:
+/+pragma(inline, true):+/
+
 	/// Value getters. TODO: These should return result types or throw
 	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
 	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
@@ -362,7 +375,8 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	size_t count = 0;
 	assert(root.objectRange.length == 2);
 	foreach (const ref e; root.objectRange()) {
-		assert(e.type == ValueType.STR);
+		assert(e.key.type == ValueType.STR);
+		// assert(e.value.type == ValueType.NUM);
 		count += 1;
 	}
 	assert(count == 2);
@@ -542,7 +556,7 @@ size_t yyjson_obj_size(const yyjson_val *obj);
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
 bool yyjson_obj_iter_has_next(yyjson_obj_iter *iter);
 yyjson_val *yyjson_obj_iter_next(yyjson_obj_iter *iter);
-
+yyjson_val *yyjson_obj_iter_get_val(yyjson_val *key);
 }
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
