@@ -10,7 +10,7 @@ import nxt.result : Result;
 
 @safe:
 
-/++ JSON Document.
+/++ Immutable JSON Document.
 	TODO: Turn into a result type being either a non-null pointer or an error type.
 	Descriminator can be least significant bit.
  +/
@@ -64,7 +64,7 @@ enum ValueType : yyjson_type {
 	OBJ = YYJSON_TYPE_OBJ,
 }
 
-/++ Immutable JSON Value. +/
+/++ Immutable JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
 pure nothrow @nogc:
@@ -105,28 +105,28 @@ pure nothrow @nogc:
 		return Result(this._val);
 	}
 
-pragma(inline, true):
+// pragma(inline, true):
+
 	bool opCast(T : bool)() const scope => _val !is null;
 
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
 @property const nothrow:
 
-	ulong boolean() const scope @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
-	long integer() const scope @trusted in(type == ValueType.NUM) => _val.uni.i64;
-	ulong uinteger() const scope @trusted in(type == ValueType.NUM) => _val.uni.u64;
-	// TODO: Check for sub-type and activate:
-	version(none) double floating() const scope @trusted in(type == ValueType.NUM_AND_SUBTYPE) => _val.uni.f64;
-
-	const(char)* cstr() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
-	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
+	bool is_null() => cast(typeof(return)) (_val.tag == YYJSON_TYPE_NULL);
+	bool is_false() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
+	bool is_true() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
+	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
+	long integer() @trusted in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
+	ulong uinteger() in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
+	double floating() in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
+	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
+	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
 
 	private yyjson_val* _val;
 }
 alias JSONValue = Value; // `std.json` compliance
-
-pragma(msg, __FILE__, "(", __LINE__, ",1): Debug: ", yyjson_val.sizeof);
 
 /++ Read flag.
 	See: `yyjson_read_flag` in yyjson.h.
@@ -196,7 +196,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
 
-/// boolean false
+/// boolean
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	foreach (const e; [false, true]) {
 		const s = e ? `true` : `false`;
@@ -207,6 +207,11 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		auto root = (*docR).root;
 		assert(root);
 		assert(root.boolean == e);
+		if (e) {
+			assert(root.is_true);
+		} else {
+			assert(root.is_false);
+		}
 	}
 }
 
@@ -239,6 +244,19 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		count += 1;
 	}
 	assert(count == 3);
+}
+
+/// integers
+@safe pure nothrow @nogc version(yyjson_test) unittest {
+	const s = `1`;
+	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	assert(docR);
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 1);
+	auto root = (*docR).root;
+	assert(root);
+	assert(root.type == ValueType.NUM);
+	// assert(root.floating == 1.0);
 }
 
 /// array with trailing comma
