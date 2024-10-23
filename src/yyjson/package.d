@@ -78,6 +78,7 @@ pure nothrow @property:
 		return res;
 	}
 @nogc:
+	size_t arrayLength() const in(type == ValueType.ARR) => yyjson_arr_size(_val);
 	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @safe @nogc:
@@ -295,6 +296,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	assert(root.arrayLength == 3);
 	size_t count = 0;
 	foreach (const ref e; root.arrayRange()) {
 		assert(e.type == ValueType.NUM);
@@ -313,6 +315,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	assert(root.arrayLength == 3);
 	{
 		size_t count = 0;
 		foreach (const ref e; root.array()) {
