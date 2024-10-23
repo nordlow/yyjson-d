@@ -112,7 +112,10 @@ pragma(inline, true):
 
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
-	ulong integer() const scope @trusted in(type == ValueType.NUM) => _val.uni.i64;
+@property nothrow:
+
+	ulong boolean() const scope @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
+	long integer() const scope @trusted in(type == ValueType.NUM) => _val.uni.i64;
 	ulong uinteger() const scope @trusted in(type == ValueType.NUM) => _val.uni.u64;
 
 	const(char)* cstr() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
@@ -191,16 +194,18 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
 
-/// boolean
+/// boolean false
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	const s = `false`;
-	auto docR = s.parseJSONDocument();
-	assert(docR);
-	assert((*docR).byteCount == s.length);
-	assert((*docR).valueCount == 1);
-	auto root = (*docR).root;
-	assert(root);
-	assert(root.type == ValueType.BOOL);
+	foreach (const e; [false, true]) {
+		const s = e ? `true` : `false`;
+		auto docR = s.parseJSONDocument();
+		assert(docR);
+		assert((*docR).byteCount == s.length);
+		assert((*docR).valueCount == 1);
+		auto root = (*docR).root;
+		assert(root);
+		assert(root.boolean == e);
+	}
 }
 
 /// string
@@ -361,6 +366,8 @@ yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
 // object iterator:
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
+
+bool unsafe_yyjson_get_bool(const yyjson_val* _val);
 }
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
