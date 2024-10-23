@@ -196,10 +196,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `false`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref Document doc = *docR;
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 1);
-	auto root = doc.root;
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 1);
+	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.BOOL);
 }
@@ -209,10 +208,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `"alpha"`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref Document doc = *docR;
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 1);
-	auto root = doc.root;
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 1);
+	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
 	assert(root.str == "alpha");
@@ -223,10 +221,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3]`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref Document doc = *docR;
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 4);
-	const Value root = doc.root;
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 4);
+	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	size_t count = 0;
@@ -242,10 +239,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3,]`;
 	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
-	ref Document doc = *docR;
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 4);
-	auto root = doc.root;
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 4);
+	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 }
@@ -255,10 +251,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
-	ref Document doc = *docR;
-	assert(doc.byteCount == s.length);
-	assert(doc.valueCount == 14);
-	auto root = doc.root;
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 14);
+	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 }
