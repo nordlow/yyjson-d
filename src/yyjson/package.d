@@ -67,6 +67,7 @@ enum ValueType : yyjson_type {
 /++ "Immutable" JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
+
 pure nothrow @property:
 	/// `std.json` compliance. Allocates with the GC!
 	const(Value)[] array() const in(type == ValueType.ARR) {
@@ -77,21 +78,27 @@ pure nothrow @property:
 			res ~= const(Value)(yyjson_arr_get(_val, idx));
 		return res;
 	}
+
 @nogc:
+
 	size_t arrayLength() const in(type == ValueType.ARR) => yyjson_arr_size(_val);
 	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @safe @nogc:
 			@disable this(this);
 			private this(const yyjson_val* arr) @trusted {
+				_length = yyjson_arr_size(arr);
 				yyjson_arr_iter_init(cast()arr, &_iter);
-				// TODO: Functionize with `Value.popFront`:
-				if (yyjson_arr_iter_has_next(&_iter))
-					_val = yyjson_arr_iter_next(&_iter);
+				nextFront();
 			}
-			bool empty() scope const @trusted => _val is null;
-			const(Value) front() return scope in(!empty) => typeof(return)(_val);
-			auto popFront() @trusted in(!empty) {
+			size_t length() scope const @property => _length; // for the sake of `std.traits.hasLength`
+			bool empty() scope const @property => _val is null;
+			const(Value) front() const return scope @property in(!empty) => typeof(return)(_val);
+			void popFront() in(!empty) {
+				nextFront();
+				_length -= 1;
+			}
+			private void nextFront() @trusted {
 				if (yyjson_arr_iter_has_next(&_iter))
 					_val = yyjson_arr_iter_next(&_iter);
 				else
@@ -100,11 +107,12 @@ pure nothrow @property:
 		private:
 			yyjson_arr_iter _iter;
 			yyjson_val* _val;
+			size_t _length;
 		}
 		return Result(this._val);
  	}
 
-	// TODO: Implement
+	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 	auto objectRange() const in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @safe @nogc:
@@ -312,6 +320,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.ARR);
 	assert(root.arrayLength == 3);
 	size_t count = 0;
+	assert(root.arrayRange.length == 3);
 	foreach (const ref e; root.arrayRange()) {
 		assert(e.type == ValueType.NUM);
 		count += 1;
@@ -479,14 +488,16 @@ pure nothrow @nogc:
 // value:
 bool unsafe_yyjson_get_bool(const yyjson_val* _val);
 
+// array:
 size_t yyjson_arr_size(const yyjson_val *arr);
 const(yyjson_val) *yyjson_arr_get(const(yyjson_val) *arr, size_t idx);
-
 // array iterator:
 bool yyjson_arr_iter_init(const yyjson_val *arr, yyjson_arr_iter *iter);
 bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
 yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
+// object:
+size_t yyjson_obj_size(const yyjson_val *obj);
 // object iterator:
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
 bool yyjson_obj_iter_has_next(yyjson_obj_iter *iter);
