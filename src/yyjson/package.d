@@ -304,6 +304,13 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
 
+/// empty
+@safe pure nothrow @nogc version(yyjson_test) unittest {
+	const s = ``;
+	auto docR = s.parseJSONDocument();
+	assert(!docR);
+}
+
 /// null
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `null`;
@@ -313,6 +320,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert((*docR).valueCount == 1);
 	auto root = (*docR).root;
 	assert(root.is_null);
+	assert(root.type == ValueType.NULL);
 }
 
 /// boolean
