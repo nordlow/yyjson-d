@@ -227,7 +227,6 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 
 /// integer
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
-	import std.conv : to;
 	foreach (const e; -100 .. -1) {
 		const s = e.to!string;
 		auto docR = s.parseJSONDocument();
@@ -241,7 +240,6 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 
 /// uinteger
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
-	import std.conv : to;
 	foreach (const e; 0 .. 100) {
 		const s = e.to!string;
 		auto docR = s.parseJSONDocument();
@@ -255,7 +253,6 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 
 /// floating|real
 @safe pure /+@nogc+/ version(yyjson_test) unittest {
-	import std.conv : to;
 	const s = `0.5`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
@@ -402,6 +399,10 @@ private DirPath homeDir() {
     }
     throw new Exception("No home directory environment variable is set.");
 }
+}
+
+version(unittest) {
+	import std.conv : to;
 }
 
 import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
