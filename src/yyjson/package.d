@@ -83,7 +83,7 @@ pure nothrow @property:
 
 	size_t arrayLength() const in(type == ValueType.ARR) => yyjson_arr_size(_val);
 	auto arrayRange() const in(type == ValueType.ARR) {
-		struct Result {
+		static struct Result {
 		private:
 			yyjson_arr_iter _iter;
 			yyjson_val* _val;
@@ -111,12 +111,12 @@ pure nothrow @property:
 			bool empty() => _val is null;
 			const(Value) front() return scope in(!empty) => typeof(return)(_val);
 		}
-		return Result(this._val);
+		return Result(_val);
  	}
 
 	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 	auto objectRange() const in(type == ValueType.OBJ) {
-		struct Result {
+		static struct Result {
 		private:
 			yyjson_obj_iter _iter;
 			yyjson_val* _val;
@@ -144,7 +144,7 @@ pure nothrow @property:
 			bool empty() => _val is null;
 			const(Value) front() return scope in(!empty) => typeof(return)(_val);
 		}
-		return Result(this._val);
+		return Result(_val);
  	}
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
