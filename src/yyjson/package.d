@@ -187,8 +187,11 @@ nothrow:
 
 	/// Type predicates:
 	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
+	alias isNull = is_null;
 	bool is_false() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE);
+	alias isFalse = is_false;
 	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
+	alias isTrue = is_true;
 
 	private yyjson_val* _val;
 }
@@ -376,7 +379,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.objectRange.length == 2);
 	foreach (const ref e; root.objectRange()) {
 		assert(e.key.type == ValueType.STR);
-		// assert(e.value.type == ValueType.NUM);
+		assert(e.value.type == ValueType.NUM);
 		count += 1;
 	}
 	assert(count == 2);
