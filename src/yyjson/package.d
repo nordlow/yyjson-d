@@ -62,6 +62,24 @@ enum ValueType : yyjson_type {
 	OBJ = YYJSON_TYPE_OBJ,
 }
 
+/++ Type of a JSON value being a superset of `std.json.ValueType`.
+ + `std.json` compliance.
+ +/
+enum JSONType : byte
+{
+    null_,
+    string,
+    integer,
+    uinteger,
+    float_,
+    array,
+    object,
+    true_,
+    false_,
+	raw, // Extended.
+	none, // Extended.
+}
+
 /++ "Immutable" JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
@@ -171,6 +189,7 @@ pure nothrow @property:
 	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
 	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
 	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
+	alias float_ = floating;
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
@@ -182,6 +201,28 @@ nothrow:
 	bool opCast(T : bool)() scope => _val !is null;
 
 	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+
+	/// `std.json` compliance
+	JSONType type_std() scope {
+		final switch (type) {
+		case ValueType.NONE:
+			return typeof(return).none;
+		case ValueType.RAW:
+			return typeof(return).raw;
+		case ValueType.NULL:
+			return typeof(return).null_;
+		case ValueType.BOOL:
+			assert(0, "TODO: Read SUB_TYPE");
+		case ValueType.NUM:
+			assert(0, "TODO: Read SUB_TYPE");
+		case ValueType.STR:
+			return typeof(return).string;
+		case ValueType.ARR:
+			return typeof(return).array;
+		case ValueType.OBJ:
+			return typeof(return).object;
+		}
+	}
 
 	/// Type predicates:
 	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
@@ -339,6 +380,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
+	assert(root.type_std == JSONType.string);
 	assert(root.str == "alpha");
 }
 
@@ -352,6 +394,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	assert(root.type_std == JSONType.array);
 	assert(root.arrayLength == 3);
 	size_t ix = 0;
 	assert(root.arrayRange.length == 3);
@@ -375,11 +418,13 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
+	assert(root.type_std == JSONType.object);
 	assert(root.objectLength == n);
 	size_t ix = 0;
 	assert(root.objectRange.length == n);
 	foreach (const ref kv; root.objectRange()) {
 		assert(kv.key.type == ValueType.STR);
+		assert(kv.key.type_std == JSONType.string);
 		assert(kv.value.type == ValueType.NUM);
 		assert(kv.key.str == keys[ix]);
 		assert(kv.value.uinteger == vals[ix]);
@@ -398,6 +443,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	assert(root.type_std == JSONType.array);
 	assert(root.arrayLength == 3);
 	{
 		size_t ix = 0;
@@ -432,6 +478,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	assert(root.type_std == JSONType.array);
 }
 
 /// object with trailing commas
@@ -444,6 +491,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	auto root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
+	assert(root.type_std == JSONType.object);
 }
 
 version (yyjson_dub_benchmark) {
