@@ -306,10 +306,10 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	// assert(root.floating == 1.0);
 }
 
-/// array with trailing comma
+/// array with trailing comma and comment
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	const s = `[1,2,3,]`;
-	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	const s = `[1,2,3,] // a comment`;
+	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_COMMENTS));
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
