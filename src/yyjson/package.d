@@ -4,8 +4,6 @@ module yyjson;
 
 // version = yyjson_dub_benchmark;
 
-debug import std.stdio : writeln;
-import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 import nxt.result : Result;
 
 @safe:
@@ -444,6 +442,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 version (yyjson_dub_benchmark) {
+import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 @safe version(yyjson_test) unittest {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
@@ -455,7 +454,7 @@ version (yyjson_dub_benchmark) {
 		if (dent.baseName == "dub.json")
 			() @trusted {
 				scope mmfile = new MmFile(dent.name);
-				import std.stdio : writeln;
+				debug import std.stdio : writeln;
 				// debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
