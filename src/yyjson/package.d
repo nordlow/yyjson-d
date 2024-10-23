@@ -149,16 +149,7 @@ pure nothrow @property:
 // pragma(inline, true):
 
 @property const nothrow:
-	size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
-	size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
-
-	bool opCast(T : bool)() scope => _val !is null;
-
-	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
-
-	bool is_null() => cast(typeof(return)) (_val.tag == YYJSON_TYPE_NULL);
-	bool is_false() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
-	bool is_true() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
+	/// Value getters. TODO: These should return result types or throw
 	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
 	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
 	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
@@ -166,6 +157,19 @@ pure nothrow @property:
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
+
+	size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
+	size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
+
+nothrow:
+	bool opCast(T : bool)() scope => _val !is null;
+
+	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+
+	/// Type predicates:
+	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
+	bool is_false() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE);
+	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
 
 	private yyjson_val* _val;
 }
