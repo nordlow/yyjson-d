@@ -113,19 +113,23 @@ pure nothrow @property:
  	}
 
 	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
-	auto objectRange() const in(type == ValueType.OBJ) {
+	auto objayRange() const in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @safe @nogc:
 			@disable this(this);
 			private this(const yyjson_val* obj) @trusted {
+				_length = yyjson_obj_size(obj);
 				yyjson_obj_iter_init(cast()obj, &_iter);
-				// TODO: Functionize with `Value.popFront`:
-				if (yyjson_obj_iter_has_next(&_iter))
-					_val = yyjson_obj_iter_next(&_iter);
+				nextFront();
 			}
-			bool empty() scope const @trusted => _val is null;
-			const(Value) front() return scope in(!empty) => typeof(return)(_val);
-			auto popFront() @trusted in(!empty) {
+			size_t length() scope const @property => _length; // for the sake of `std.traits.hasLength`
+			bool empty() scope const @property => _val is null;
+			const(Value) front() const return scope @property in(!empty) => typeof(return)(_val);
+			void popFront() in(!empty) {
+				nextFront();
+				_length -= 1;
+			}
+			private void nextFront() @trusted {
 				if (yyjson_obj_iter_has_next(&_iter))
 					_val = yyjson_obj_iter_next(&_iter);
 				else
@@ -134,9 +138,10 @@ pure nothrow @property:
 		private:
 			yyjson_obj_iter _iter;
 			yyjson_val* _val;
+			size_t _length;
 		}
 		return Result(this._val);
-	}
+ 	}
 
 // pragma(inline, true):
 
