@@ -25,7 +25,7 @@ pure nothrow @nogc:
 	}
 	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
 
-pragma(inline, true):
+/+pragma(inline, true):+/
 
 	bool opCast(T : bool)() const scope => _doc !is null;
 
