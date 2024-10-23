@@ -315,7 +315,7 @@ private DirPath homeDir() {
 }
 }
 
-import yyjson.yyjson_c; // ImportC yyjson.c. Functions are overrided below.
+import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
 // Need these because ImportC doesn't support overriding qualifiers.
 extern(C) private pure nothrow @nogc {
 import core.stdc.stdint : uint32_t, uint64_t, int64_t;
