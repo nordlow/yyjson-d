@@ -64,9 +64,7 @@ enum ValueType : yyjson_type {
 	OBJ = YYJSON_TYPE_OBJ,
 }
 
-/++ JSON Value.
-	TODO: Wrap in `Result` type.
- +/
+/++ Immutable JSON Value. +/
 struct Value {
 	import core.stdc.string : strlen;
 pure nothrow @nogc:
@@ -127,6 +125,8 @@ pragma(inline, true):
 	private yyjson_val* _val;
 }
 alias JSONValue = Value; // `std.json` compliance
+
+pragma(msg, __FILE__, "(", __LINE__, ",1): Debug: ", yyjson_val.sizeof);
 
 /++ Read flag.
 	See: `yyjson_read_flag` in yyjson.h.
