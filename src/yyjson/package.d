@@ -112,11 +112,13 @@ pragma(inline, true):
 
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
-@property nothrow:
+@property const nothrow:
 
 	ulong boolean() const scope @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
 	long integer() const scope @trusted in(type == ValueType.NUM) => _val.uni.i64;
 	ulong uinteger() const scope @trusted in(type == ValueType.NUM) => _val.uni.u64;
+	// TODO: Check for sub-type and activate:
+	version(none) double floating() const scope @trusted in(type == ValueType.NUM_AND_SUBTYPE) => _val.uni.f64;
 
 	const(char)* cstr() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
@@ -358,6 +360,9 @@ pure nothrow @nogc:
     void *ctx;
 }
 
+// value:
+bool unsafe_yyjson_get_bool(const yyjson_val* _val);
+
 // array iterator:
 bool yyjson_arr_iter_init(const yyjson_val *arr,
                           yyjson_arr_iter *iter);
@@ -366,8 +371,6 @@ yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
 // object iterator:
 bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
-
-bool unsafe_yyjson_get_bool(const yyjson_val* _val);
 }
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
