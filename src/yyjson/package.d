@@ -335,7 +335,7 @@ version (yyjson_dub_benchmark) {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
 	import std.mmfile : MmFile;
-	const Value root = homeDir.str.buildPath(".dub/packages.all");
+	const root = homeDir.str.buildPath(".dub/packages.all");
 	foreach (ref dent; dirEntries(root, SpanMode.depth)) { // TODO: Use overload of dirEntries where depth-span can be set
 		if (dent.isDir)
 			continue;
@@ -346,7 +346,7 @@ version (yyjson_dub_benchmark) {
 				// debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
-				auto doc = src.parseJSONDocument(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				const doc = src.parseJSONDocument(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 				debug const dur = sw.peek;
 				const mbps = src.length.bytesPer(dur) * 1e-6;
 				if (doc) {
