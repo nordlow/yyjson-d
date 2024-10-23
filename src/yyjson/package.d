@@ -67,7 +67,17 @@ enum ValueType : yyjson_type {
 /++ Immutable JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
-pure nothrow @nogc:
+pure nothrow @property:
+	/// Allocates with the GC!
+	const(Value)[] array() const in(type == ValueType.ARR) {
+		const length = yyjson_arr_size(_val);
+		typeof(return) res;
+		res.reserve(length);
+		foreach (const idx; 0 .. length)
+			res ~= const(Value)(yyjson_arr_get(_val, idx));
+		return res;
+	}
+@nogc:
 	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @safe @nogc:
@@ -275,7 +285,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.str == "alpha");
 }
 
-/// array
+/// array range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
 	auto docR = s.parseJSONDocument();
@@ -291,6 +301,26 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		count += 1;
 	}
 	assert(count == 3);
+}
+
+/// array allocation
+@safe pure nothrow version(yyjson_test) unittest {
+	const s = `[1,2,3]`;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 4);
+	const Value root = (*docR).root;
+	assert(root);
+	assert(root.type == ValueType.ARR);
+	{
+		size_t count = 0;
+		foreach (const ref e; root.array()) {
+			assert(e.type == ValueType.NUM);
+			count += 1;
+		}
+		assert(count == 3);
+	}
 }
 
 /// integers
@@ -431,6 +461,9 @@ pure nothrow @nogc:
 
 // value:
 bool unsafe_yyjson_get_bool(const yyjson_val* _val);
+
+size_t yyjson_arr_size(const yyjson_val *arr);
+const(yyjson_val) *yyjson_arr_get(const(yyjson_val) *arr, size_t idx);
 
 // array iterator:
 bool yyjson_arr_iter_init(const yyjson_val *arr,
