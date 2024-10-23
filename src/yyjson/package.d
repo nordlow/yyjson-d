@@ -353,17 +353,20 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.arrayLength == 3);
-	size_t count = 0;
+	size_t ix = 0;
 	assert(root.arrayRange.length == 3);
 	foreach (const ref e; root.arrayRange()) {
 		assert(e.type == ValueType.NUM);
-		count += 1;
+		ix += 1;
 	}
-	assert(count == 3);
+	assert(ix == 3);
 }
 
 /// object range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
+	enum n = 2;
+	const string[n] keys = ["a", "b"];
+	const uint[n] vals = [1, 2];
 	const s = `{"a":1, "b":2}`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
@@ -372,15 +375,17 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
-	assert(root.objectLength == 2);
-	size_t count = 0;
-	assert(root.objectRange.length == 2);
+	assert(root.objectLength == n);
+	size_t ix = 0;
+	assert(root.objectRange.length == n);
 	foreach (const ref e; root.objectRange()) {
+		assert(e.key.str == keys[ix]);
+		assert(e.value.uinteger == vals[ix]);
 		assert(e.key.type == ValueType.STR);
 		assert(e.value.type == ValueType.NUM);
-		count += 1;
+		ix += 1;
 	}
-	assert(count == 2);
+	assert(ix == n);
 }
 
 /// array allocation
@@ -395,12 +400,12 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type == ValueType.ARR);
 	assert(root.arrayLength == 3);
 	{
-		size_t count = 0;
+		size_t ix = 0;
 		foreach (const ref e; root.array()) {
 			assert(e.type == ValueType.NUM);
-			count += 1;
+			ix += 1;
 		}
-		assert(count == 3);
+		assert(ix == 3);
 	}
 }
 
