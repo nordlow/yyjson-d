@@ -117,30 +117,32 @@ pure nothrow @property:
 	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 	auto objectRange() const in(type == ValueType.OBJ) {
 		struct Result {
-		pure nothrow @safe @nogc:
+		private:
+			yyjson_obj_iter _iter;
+			yyjson_val* _val;
+			size_t _length;
+		scope pure nothrow @safe @nogc:
 			@disable this(this);
-			private this(const yyjson_val* obj) @trusted {
+			this(const yyjson_val* obj) @trusted {
 				_length = yyjson_obj_size(obj);
 				yyjson_obj_iter_init(cast()obj, &_iter);
 				nextFront();
 			}
-			size_t length() scope const @property => _length; // `std.traits.hasLength` compliance
-			bool empty() scope const @property => _val is null;
-			const(Value) front() const return scope @property in(!empty) => typeof(return)(_val);
-			void popFront() in(!empty) {
-				nextFront();
-				_length -= 1;
-			}
-			private void nextFront() scope @trusted {
+			void nextFront() @trusted {
 				if (yyjson_obj_iter_has_next(&_iter))
 					_val = yyjson_obj_iter_next(&_iter);
 				else
 					_val = null;
 			}
-		private:
-			yyjson_obj_iter _iter;
-			yyjson_val* _val;
-			size_t _length;
+		public:
+			void popFront() in(!empty) {
+				nextFront();
+				_length -= 1;
+			}
+		const @property:
+			size_t length() => _length; // for the sake of `std.traits.hasLength`
+			bool empty() => _val is null;
+			const(Value) front() return scope in(!empty) => typeof(return)(_val);
 		}
 		return Result(this._val);
  	}
