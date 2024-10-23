@@ -207,11 +207,10 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		auto root = (*docR).root;
 		assert(root);
 		assert(root.boolean == e);
-		if (e) {
+		if (e)
 			assert(root.is_true);
-		} else {
+		else
 			assert(root.is_false);
-		}
 	}
 }
 
