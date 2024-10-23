@@ -70,26 +70,26 @@ enum ValueType : yyjson_type {
 struct Value {
 	import core.stdc.string : strlen;
 pure nothrow @nogc:
-	@disable this(this);
-
 	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @safe @nogc:
 			@disable this(this);
-			private this(const yyjson_val* val) @trusted {
-				yyjson_arr_iter_init(cast()val, _iter);
+			private this(const yyjson_val* arr) @trusted {
+				yyjson_arr_iter_init(cast()arr, &_iter);
+				// TODO: Functionize with `Value.popFront`:
+				if (yyjson_arr_iter_has_next(&_iter))
+					_val = yyjson_arr_iter_next(&_iter);
 			}
-			bool empty() scope const @trusted {
-				return !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
-			}
-			Value front() return scope in(!empty) {
-				return typeof(return)(_val);
-			}
-			auto popFront() in(!empty) {
-				_val = yyjson_arr_iter_next(_iter);
+			bool empty() scope const @trusted => _val is null;
+			const(Value) front() return scope in(!empty) => typeof(return)(_val);
+			auto popFront() @trusted in(!empty) {
+				if (yyjson_arr_iter_has_next(&_iter))
+					_val = yyjson_arr_iter_next(&_iter);
+				else
+					_val = null;
 			}
 		private:
-			yyjson_arr_iter *_iter;
+			yyjson_arr_iter _iter;
 			yyjson_val* _val;
 		}
 		return Result(this._val);
@@ -111,6 +111,9 @@ pragma(inline, true):
 	bool opCast(T : bool)() const scope => _val !is null;
 
 	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+
+	ulong integer() const scope @trusted in(type == ValueType.NUM) => _val.uni.i64;
+	ulong uinteger() const scope @trusted in(type == ValueType.NUM) => _val.uni.u64;
 
 	const(char)* cstr() const scope @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() const scope @trusted => cstr[0..strlen(cstr)];
@@ -226,8 +229,12 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const Value root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
-	auto ar = root.arrayRange();
-	// TODO: assert(!ar.empty);
+	size_t count = 0;
+	foreach (const ref e; root.arrayRange()) {
+		assert(e.type == ValueType.NUM);
+		count += 1;
+	}
+	assert(count == 3);
 }
 
 /// array with trailing comma
