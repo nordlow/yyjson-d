@@ -98,7 +98,7 @@ pure nothrow @property:
 				nextFront();
 				_length -= 1;
 			}
-			private void nextFront() @trusted {
+			private void nextFront() scope @trusted {
 				if (yyjson_arr_iter_has_next(&_iter))
 					_val = yyjson_arr_iter_next(&_iter);
 				else
@@ -113,7 +113,7 @@ pure nothrow @property:
  	}
 
 	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
-	auto objayRange() const in(type == ValueType.OBJ) {
+	auto objectRange() const in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @safe @nogc:
 			@disable this(this);
@@ -122,14 +122,14 @@ pure nothrow @property:
 				yyjson_obj_iter_init(cast()obj, &_iter);
 				nextFront();
 			}
-			size_t length() scope const @property => _length; // for the sake of `std.traits.hasLength`
+			size_t length() scope const @property => _length; // `std.traits.hasLength` compliance
 			bool empty() scope const @property => _val is null;
 			const(Value) front() const return scope @property in(!empty) => typeof(return)(_val);
 			void popFront() in(!empty) {
 				nextFront();
 				_length -= 1;
 			}
-			private void nextFront() @trusted {
+			private void nextFront() scope @trusted {
 				if (yyjson_obj_iter_has_next(&_iter))
 					_val = yyjson_obj_iter_next(&_iter);
 				else
@@ -142,6 +142,7 @@ pure nothrow @property:
 		}
 		return Result(this._val);
  	}
+	alias byKeyValue = objectRange; // `std.traits` compliance
 
 // pragma(inline, true):
 
@@ -331,6 +332,26 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		count += 1;
 	}
 	assert(count == 3);
+}
+
+/// object range
+@safe pure nothrow @nogc version(yyjson_test) unittest {
+	const s = `{"a":1, "b":2}`;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 5);
+	const Value root = (*docR).root;
+	assert(root);
+	assert(root.type == ValueType.OBJ);
+	assert(root.objectLength == 2);
+	size_t count = 0;
+	assert(root.objectRange.length == 2);
+	foreach (const ref e; root.objectRange()) {
+		assert(e.type == ValueType.STR);
+		count += 1;
+	}
+	assert(count == 2);
 }
 
 /// array allocation
