@@ -71,7 +71,7 @@ struct Value {
 pure nothrow @nogc:
 	@disable this(this);
 
-	auto arrayRange() in(type == ValueType.ARR) {
+	private auto arrayRange() in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @nogc:
 			@disable this(this);
@@ -90,8 +90,7 @@ pure nothrow @nogc:
 		return Result(this._val);
  	}
 
-	version (none) // TODO: Enable when used functions are non-static
-	auto objectRange() in(type == ValueType.OBJ) {
+	private auto objectRange() in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @nogc:
 			@disable this(this);
@@ -339,8 +338,13 @@ pure nothrow @nogc:
     /** A context for malloc/realloc/free, can be NULL. */
     void *ctx;
 }
+
+// array iterator:
 bool yyjson_arr_iter_init(yyjson_val *arr,
                           yyjson_arr_iter *iter);
 bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
 yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
+
+// object iterator:
+bool yyjson_obj_iter_init(yyjson_val *obj, yyjson_obj_iter *iter);
 }
