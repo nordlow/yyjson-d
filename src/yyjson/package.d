@@ -346,7 +346,7 @@ version (yyjson_dub_benchmark) {
 				// debug writeln("Parsing ", dent.name, " ...");
 				const src = (cast(char[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
-				const doc = src.parseJSONDocument(-1, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+				const doc = src.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 				debug const dur = sw.peek;
 				const mbps = src.length.bytesPer(dur) * 1e-6;
 				if (doc) {
