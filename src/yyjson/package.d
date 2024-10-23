@@ -378,11 +378,11 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.objectLength == n);
 	size_t ix = 0;
 	assert(root.objectRange.length == n);
-	foreach (const ref e; root.objectRange()) {
-		assert(e.key.str == keys[ix]);
-		assert(e.value.uinteger == vals[ix]);
-		assert(e.key.type == ValueType.STR);
-		assert(e.value.type == ValueType.NUM);
+	foreach (const ref kv; root.objectRange()) {
+		assert(kv.key.type == ValueType.STR);
+		assert(kv.value.type == ValueType.NUM);
+		assert(kv.key.str == keys[ix]);
+		assert(kv.value.uinteger == vals[ix]);
 		ix += 1;
 	}
 	assert(ix == n);
