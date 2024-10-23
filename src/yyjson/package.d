@@ -84,6 +84,8 @@ enum JSONType : byte
 struct Value {
 	import core.stdc.string : strlen;
 
+	private yyjson_val* _val;
+
 pure nothrow @property:
 	/// `std.json` compliance. Allocates with the GC!
 	const(Value)[] array() const in(type == ValueType.ARR) {
@@ -171,7 +173,7 @@ pure nothrow @property:
 		const @property:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _key is null;
-			Key frontKey() return scope in(!empty) => typeof(return)(_key);
+			const(Key) frontKey() return scope in(!empty) => typeof(return)(_key);
 			const(Value) frontValue() return scope @trusted in(!empty) {
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
@@ -181,7 +183,7 @@ pure nothrow @property:
  	}
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
-@property const nothrow:
+@property const scope nothrow:
 /+pragma(inline, true):+/
 
 	/// Value getters. TODO: These should return result types or throw
@@ -231,8 +233,6 @@ nothrow:
 	alias isFalse = is_false;
 	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
 	alias isTrue = is_true;
-
-	private yyjson_val* _val;
 }
 alias JSONValue = Value; // `std.json` compliance
 
@@ -318,7 +318,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root.is_null);
 	assert(root.type == ValueType.NULL);
 }
@@ -331,7 +331,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		auto root = (*docR).root;
+		scope root = (*docR).root;
 		assert(root);
 		assert(root.boolean == e);
 		if (e)
@@ -349,7 +349,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		auto root = (*docR).root;
+		scope root = (*docR).root;
 		assert(root.integer == e);
 	}
 }
@@ -362,7 +362,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		auto root = (*docR).root;
+		scope root = (*docR).root;
 		assert(root.uinteger == e);
 	}
 }
@@ -374,7 +374,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root.floating == 0.5);
 }
 
@@ -385,7 +385,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
 	assert(root.type_std == JSONType.string);
@@ -470,7 +470,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.NUM);
 	// assert(root.floating == 1.0);
@@ -483,7 +483,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
@@ -496,7 +496,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 14);
-	auto root = (*docR).root;
+	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 	assert(root.type_std == JSONType.object);
