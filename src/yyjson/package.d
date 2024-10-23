@@ -73,12 +73,12 @@ pure nothrow @nogc:
 
 	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
-		pure nothrow @nogc:
+		pure nothrow @safe @nogc:
 			@disable this(this);
 			private this(const yyjson_val* val) @trusted {
 				yyjson_arr_iter_init(cast()val, _iter);
 			}
-			bool empty() scope const => !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
+			bool empty() scope const @trusted => !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
 			Value front() return scope in(!empty) => typeof(return)(_val);
 			auto popFront() in(!empty) {
 				_val = yyjson_arr_iter_next(_iter);
@@ -186,11 +186,12 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// boolean
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `false`;
-	auto doc = s.parseJSON();
-	assert(doc);
-	assert((*doc).byteCount == s.length);
-	assert((*doc).valueCount == 1);
-	auto root = (*doc).root;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	ref doc = *docR;
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 1);
+	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.BOOL);
 }
@@ -198,11 +199,12 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// string
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `"alpha"`;
-	auto doc = s.parseJSONDocument();
-	assert(doc);
-	assert((*doc).byteCount == s.length);
-	assert((*doc).valueCount == 1);
-	auto root = (*doc).root;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	ref doc = *docR;
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 1);
+	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.STR);
 	assert(root.str == "alpha");
@@ -211,24 +213,27 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// array
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
-	auto doc = s.parseJSONDocument();
-	assert(doc);
-	assert((*doc).byteCount == s.length);
-	assert((*doc).valueCount == 4);
-	auto root = (*doc).root;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	ref doc = *docR;
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 4);
+	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
-	// assert(root.arrayRange);
+	auto ar = root.arrayRange;
+	assert(ar.empty);
 }
 
 /// array with trailing comma
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3,]`;
-	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	assert(doc);
-	assert((*doc).byteCount == s.length);
-	assert((*doc).valueCount == 4);
-	auto root = (*doc).root;
+	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	assert(docR);
+	ref doc = *docR;
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 4);
+	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 }
@@ -236,11 +241,12 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 /// object with trailing commas
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
-	auto doc = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	assert(doc);
-	assert((*doc).byteCount == s.length);
-	assert((*doc).valueCount == 14);
-	auto root = (*doc).root;
+	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	assert(docR);
+	ref doc = *docR;
+	assert(doc.byteCount == s.length);
+	assert(doc.valueCount == 14);
+	auto root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 }
