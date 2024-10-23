@@ -117,9 +117,9 @@ pure nothrow @nogc:
 	bool is_false() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
 	bool is_true() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
 	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
-	long integer() @trusted in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
-	ulong uinteger() in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
-	double floating() in(type == ValueType.NUM && (_val.tag & YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
+	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
+	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
+	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
 	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	private alias string = str;
@@ -223,6 +223,46 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		else
 			assert(root.is_false);
 	}
+}
+
+/// integer
+@safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
+	import std.conv : to;
+	foreach (const e; -100 .. -1) {
+		const s = e.to!string;
+		auto docR = s.parseJSONDocument();
+		assert(docR);
+		assert((*docR).byteCount == s.length);
+		assert((*docR).valueCount == 1);
+		auto root = (*docR).root;
+		assert(root.integer == e);
+	}
+}
+
+/// uinteger
+@safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
+	import std.conv : to;
+	foreach (const e; 0 .. 100) {
+		const s = e.to!string;
+		auto docR = s.parseJSONDocument();
+		assert(docR);
+		assert((*docR).byteCount == s.length);
+		assert((*docR).valueCount == 1);
+		auto root = (*docR).root;
+		assert(root.uinteger == e);
+	}
+}
+
+/// floating|real
+@safe pure /+@nogc+/ version(yyjson_test) unittest {
+	import std.conv : to;
+	const s = `0.5`;
+	auto docR = s.parseJSONDocument();
+	assert(docR);
+	assert((*docR).byteCount == s.length);
+	assert((*docR).valueCount == 1);
+	auto root = (*docR).root;
+	assert(root.floating == 0.5);
 }
 
 /// string
