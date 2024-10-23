@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-exec dub -q test --compiler=ldc2
+exec ./test.sh
