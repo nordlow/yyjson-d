@@ -304,7 +304,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
 
-/// empty
+/// document from empty string
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = ``;
 	auto docR = s.parseJSONDocument();
