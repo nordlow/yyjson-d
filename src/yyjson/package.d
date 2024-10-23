@@ -178,7 +178,7 @@ Result!(Document, ReadError) parseJSONDocument(in char[] data, in Options option
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return)(err));
 }
 
-///  Compliance with `std.json`.
+///  Compliance with `std.json.parseJSON`.
 Result!(Document, ReadError) parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
