@@ -193,7 +193,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `false`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref doc = *docR;
+	ref Document doc = *docR;
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 1);
 	auto root = doc.root;
@@ -206,7 +206,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `"alpha"`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref doc = *docR;
+	ref Document doc = *docR;
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 1);
 	auto root = doc.root;
@@ -220,10 +220,10 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3]`;
 	auto docR = s.parseJSONDocument();
 	assert(docR);
-	ref doc = *docR;
+	ref Document doc = *docR;
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 4);
-	auto root = doc.root;
+	const Value root = doc.root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	auto ar = root.arrayRange();
@@ -235,7 +235,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `[1,2,3,]`;
 	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
-	ref doc = *docR;
+	ref Document doc = *docR;
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 4);
 	auto root = doc.root;
@@ -248,7 +248,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	auto docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
-	ref doc = *docR;
+	ref Document doc = *docR;
 	assert(doc.byteCount == s.length);
 	assert(doc.valueCount == 14);
 	auto root = doc.root;
@@ -261,7 +261,7 @@ version (yyjson_dub_benchmark) {
 	import std.file : dirEntries, SpanMode;
 	import std.path : buildPath, baseName;
 	import std.mmfile : MmFile;
-	const root = homeDir.str.buildPath(".dub/packages.all");
+	const Value root = homeDir.str.buildPath(".dub/packages.all");
 	foreach (ref dent; dirEntries(root, SpanMode.depth)) { // TODO: Use overload of dirEntries where depth-span can be set
 		if (dent.isDir)
 			continue;
