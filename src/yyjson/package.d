@@ -9,8 +9,8 @@ import nxt.result : Result;
 @safe:
 
 /++ "Immutable" JSON Document.
-	TODO: Turn into a result type being either a non-null pointer or an error type.
-	Descriminator can be the least significant bit.
+ +  TODO: Turn into a result type being either a non-null pointer or an error type.
+ +  Descriminator can be the least significant bit.
  +/
 struct Document {
 pure nothrow @nogc:
@@ -196,7 +196,7 @@ nothrow:
 alias JSONValue = Value; // `std.json` compliance
 
 /++ Read flag.
-	See: `yyjson_read_flag` in yyjson.h.
+ +  See: `yyjson_read_flag` in yyjson.h.
  +/
 enum ReadFlag : yyjson_read_flag {
 	NOFLAG = YYJSON_READ_NOFLAG,
@@ -211,7 +211,7 @@ enum ReadFlag : yyjson_read_flag {
 }
 
 /++ Read (error) code.
-	See: `yyjson_read_code` in yyjson.h.
+ +  See: `yyjson_read_code` in yyjson.h.
  +/
 enum ReadCode : yyjson_read_code {
 	SUCCESS = YYJSON_READ_SUCCESS,
@@ -231,7 +231,7 @@ enum ReadCode : yyjson_read_code {
 }
 
 /++ Read error.
-	Same memory layout as `yyjson_read_err`.
+ +  Same memory layout as `yyjson_read_err`.
  +/
 struct ReadError {
     /** Error code, see `yyjson_read_code` for all possible values. */
@@ -249,7 +249,7 @@ struct Options {
 alias JSONOptions = Options; // `std.json` compliance
 
 /++ Parse JSON Document from `data`.
-    See_Also: https://dlang.org/library/std/json/parse_json.html
+ +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
 Result!(Document, ReadError) parseJSONDocument(in char[] data, in Options options = Options.none) @trusted pure nothrow @nogc {
 	ReadError err;
@@ -496,9 +496,9 @@ private struct DirPath {
 }
 
 /++ Get path to home directory.
-	See_Also: `tempDir`
-	See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
-	+/
+ +	See_Also: `tempDir`
+ +  See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
+ +/
 private DirPath homeDir() {
 	import std.process : environment;
     version(Windows) {
