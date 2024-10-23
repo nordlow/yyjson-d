@@ -10,7 +10,7 @@ import nxt.result : Result;
 
 /++ "Immutable" JSON Document.
 	TODO: Turn into a result type being either a non-null pointer or an error type.
-	Descriminator can be least significant bit.
+	Descriminator can be the least significant bit.
  +/
 struct Document {
 pure nothrow @nogc:
