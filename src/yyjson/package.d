@@ -81,7 +81,6 @@ pure nothrow @property:
 
 @nogc:
 
-	size_t arrayLength() const in(type == ValueType.ARR) => yyjson_arr_size(_val);
 	auto arrayRange() const in(type == ValueType.ARR) {
 		static struct Result {
 		private:
@@ -114,7 +113,6 @@ pure nothrow @property:
 		return Result(_val);
  	}
 
-	size_t objectLength() const in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
 		private:
@@ -150,11 +148,13 @@ pure nothrow @property:
 
 // pragma(inline, true):
 
-	bool opCast(T : bool)() const scope => _val !is null;
-
-	ValueType type() const scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
-
 @property const nothrow:
+	size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
+	size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
+
+	bool opCast(T : bool)() scope => _val !is null;
+
+	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
 	bool is_null() => cast(typeof(return)) (_val.tag == YYJSON_TYPE_NULL);
 	bool is_false() => cast(typeof(return)) (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
