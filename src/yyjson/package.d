@@ -71,12 +71,12 @@ struct Value {
 pure nothrow @nogc:
 	@disable this(this);
 
-	private auto arrayRange() in(type == ValueType.ARR) {
+	auto arrayRange() const in(type == ValueType.ARR) {
 		struct Result {
 		pure nothrow @nogc:
 			@disable this(this);
-			private this(yyjson_val* val) {
-				yyjson_arr_iter_init(val, _iter);
+			private this(const yyjson_val* val) @trusted {
+				yyjson_arr_iter_init(cast()val, _iter);
 			}
 			bool empty() scope const => !yyjson_arr_iter_has_next(cast(yyjson_arr_iter*)_iter);
 			Value front() return scope in(!empty) => typeof(return)(_val);
@@ -90,12 +90,12 @@ pure nothrow @nogc:
 		return Result(this._val);
  	}
 
-	private auto objectRange() in(type == ValueType.OBJ) {
+	auto objectRange() const in(type == ValueType.OBJ) {
 		struct Result {
 		pure nothrow @nogc:
 			@disable this(this);
-			private this(yyjson_val* val) {
-				yyjson_obj_iter_init(val, _iter);
+			private this(const yyjson_val* val) @trusted {
+				yyjson_obj_iter_init(cast()val, _iter);
 			}
 			private yyjson_obj_iter *_iter;
 		}
@@ -218,6 +218,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	auto root = (*doc).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
+	// assert(root.arrayRange);
 }
 
 /// array with trailing comma
@@ -340,11 +341,11 @@ pure nothrow @nogc:
 }
 
 // array iterator:
-bool yyjson_arr_iter_init(yyjson_val *arr,
+bool yyjson_arr_iter_init(const yyjson_val *arr,
                           yyjson_arr_iter *iter);
 bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
 yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
 
 // object iterator:
-bool yyjson_obj_iter_init(yyjson_val *obj, yyjson_obj_iter *iter);
+bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
 }
