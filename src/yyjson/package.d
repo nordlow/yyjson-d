@@ -395,7 +395,7 @@ Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped =
 version(yyjson_benchmark) {
 	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 
-	static void benchmark(bool memoryMapped = false)(in char[] filename, Options options = Options.init) {
+	private void benchmark(bool memoryMapped = false)(in char[] filename, Options options = Options.init) {
 		import std.path : buildPath;
 		const path = FilePath(homeDir.str.buildPath(filename));
 		auto sw = StopWatch(AutoStart.yes);
@@ -435,7 +435,7 @@ Result!(Document!(true), ReadError) parseJSONDocumentMmap(scope MmFile mmfile, i
 /// Read document from empty string.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = ``;
-	scope docR = s.parseJSONDocument();
+	scope const docR = s.parseJSONDocument();
 	assert(!docR);
 }
 
@@ -755,17 +755,17 @@ yyjson_doc *yyjson_read_opts(scope const(char)* dat,
 alias MallocFn = void* function(void* ctx, size_t size);
 alias ReallocFn = void* function(void* ctx, void* ptr, size_t old_size, size_t size);
 alias FreeFn = void function(void* ctx, void* ptr);
-struct yyjson_alc {
-pure nothrow @nogc:
-    /** Same as libc's malloc(size), should not be NULL. */
-	MallocFn malloc;
-    /** Same as libc's realloc(ptr, size), should not be NULL. */
-	ReallocFn realloc;
-    /** Same as libc's free(ptr), should not be NULL. */
-	FreeFn free;
-    /** A context for malloc/realloc/free, can be NULL. */
-    void *ctx;
-}
+// struct yyjson_alc {
+// pure nothrow @nogc:
+//     /** Same as libc's malloc(size), should not be NULL. */
+// 	MallocFn malloc;
+//     /** Same as libc's realloc(ptr, size), should not be NULL. */
+// 	ReallocFn realloc;
+//     /** Same as libc's free(ptr), should not be NULL. */
+// 	FreeFn free;
+//     /** A context for malloc/realloc/free, can be NULL. */
+//     void *ctx;
+// }
 
 // value:
 bool unsafe_yyjson_get_bool(const yyjson_val* _val);
