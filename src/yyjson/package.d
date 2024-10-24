@@ -137,7 +137,7 @@ pure nothrow @property:
 		}
 		return Result(_val);
  	}
-	alias arrayView = arrayRange;
+	alias array = arrayRange; // `std.traits` compliance
 
 	/++ Object key type. +/
 	alias Key = Value;
@@ -194,7 +194,7 @@ pure nothrow @property:
 		}
 		return Result(_val);
  	}
-	alias objectView = objectRange;
+	alias object = objectRange; // `std.traits` compliance
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
 @property const scope nothrow:
