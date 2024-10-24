@@ -364,21 +364,21 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
 
-/// document from empty string
+/// Read document from empty string.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = ``;
 	scope docR = s.parseJSONDocument();
 	assert(!docR);
 }
 
-/// none
+/// Test none.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	scope root = Value();
 	assert(root.type == ValueType.NONE);
 	assert(root.isNone);
 }
 
-/// null
+/// Read null value.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `null`;
 	scope docR = s.parseJSONDocument();
@@ -390,7 +390,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.isNull);
 }
 
-/// boolean
+/// Read boolean numbers.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	foreach (const e; [false, true]) {
 		const s = e ? `true` : `false`;
@@ -408,7 +408,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	}
 }
 
-/// integer
+/// Read negative signed integer (`integer`).
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
 	foreach (const e; -100 .. -1) {
 		const s = e.to!string;
@@ -421,7 +421,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	}
 }
 
-/// uinteger
+/// Read positive unsigned integer (`uinteger`)
 @safe pure nothrow /+@nogc+/ version(yyjson_test) unittest {
 	foreach (const e; 0 .. 100) {
 		const s = e.to!string;
@@ -434,7 +434,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	}
 }
 
-/// floating|real
+/// Read floating-point (real) number (`floating`).
 @safe pure /+@nogc+/ version(yyjson_test) unittest {
 	const s = `0.5`;
 	scope docR = s.parseJSONDocument();
@@ -445,7 +445,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.floating == 0.5);
 }
 
-/// string
+/// Read string.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `"alpha"`;
 	scope docR = s.parseJSONDocument();
@@ -460,7 +460,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.str == "alpha");
 }
 
-/// array range
+/// Read array and iterate its range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
 	scope docR = s.parseJSONDocument();
@@ -482,7 +482,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(ix == 3);
 }
 
-/// object range
+/// Read object and iterate its range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	enum n = 2;
 	const string[n] keys = ["a", "b"];
@@ -510,7 +510,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(ix == n);
 }
 
-/// allocating array slice
+/// Read array and iterate its GC-allocated slice.
 @safe pure nothrow version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
 	scope docR = s.parseJSONDocument();
@@ -532,7 +532,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	}
 }
 
-/// integers
+/// Read integer.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `1`;
 	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
@@ -545,7 +545,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	// assert(root.floating == 1.0);
 }
 
-/// array with trailing comma and comment
+/// Read array with trailing comma and comment.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `[1,2,3,] // a comment`;
 	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_COMMENTS));
@@ -558,7 +558,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type_std == JSONType.array);
 }
 
-/// object with trailing commas
+/// Read object with trailing commas.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
