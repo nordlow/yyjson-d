@@ -190,14 +190,14 @@ pure nothrow @property:
 		Value value; ///< Value part of object element.
 	}
 
-	/// Check if element `e` is stored/contained.
+	/// Check if element with key `key` is stored/contained.
 	const(Value) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
-	scope ref const(Value) opIndex(in char[] key) inout return @trusted {
-		// TODO: Use yyjson_obj_get() or reuse `opBinaryRight`.
-		assert(0); // TODO:
+	/// Get element value with key `key`.
+	const(Value) opIndex(in char[] key) const return scope @trusted {
+		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
 	/++ Get value as a {range|view} over object elements (key-values). +/
@@ -476,6 +476,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	scope root = Value();
 	assert(root.type == ValueType.NONE);
+	assert(root.type_std == JSONType.none);
 	assert(root.isNone);
 }
 
@@ -496,6 +497,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert((*docR).valueCount == 1);
 	scope root = (*docR).root;
 	assert(root.type == ValueType.NULL);
+	assert(root.type_std == JSONType.null_);
 	assert(root.isNull);
 }
 
@@ -681,8 +683,10 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(root.type_std == JSONType.object);
 	const a_val = "a" in root;
 	assert(a_val.uinteger == 11);
+	assert(root["a"].uinteger == 11);
 	const x_val = "x" in root;
 	assert(!x_val);
+	assert(root["x"].isNone);
 }
 
 /++ Path. +/
