@@ -89,7 +89,7 @@ struct Value {
 
 pure nothrow @property:
 	/// `std.json` compliance. Allocates with the GC!
-	const(Value)[] array() const in(type == ValueType.ARR) {
+	const(Value)[] arraySlice() const in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
 		typeof(return) res;
 		res.reserve(length);
@@ -468,7 +468,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(ix == n);
 }
 
-/// array allocation
+/// allocating array slice
 @safe pure nothrow version(yyjson_test) unittest {
 	const s = `[1,2,3]`;
 	scope docR = s.parseJSONDocument();
@@ -482,7 +482,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.arrayLength == 3);
 	{
 		size_t ix = 0;
-		foreach (const ref e; root.array()) {
+		foreach (const ref e; root.arraySlice()) {
 			assert(e.type == ValueType.NUM);
 			ix += 1;
 		}
