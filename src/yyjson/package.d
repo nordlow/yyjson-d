@@ -269,7 +269,7 @@ nothrow:
 	alias isNone = is_none;
 
 	/++ Returns: `true` iff `this` has value `null`. +/
-	bool is_null() => (_val.tag == YYJSON_TYPE_NULL) != 0;
+	bool is_null() => (_val.tag == (YYJSON_TYPE_NULL)) != 0;
 	alias isNull = is_null;
 
 	/++ Returns: `true` iff `this` has value `false`. +/
