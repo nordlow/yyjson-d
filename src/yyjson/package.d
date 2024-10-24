@@ -139,19 +139,19 @@ pure nothrow @property:
  	}
 	alias arrayView = arrayRange;
 
-	/// Object key type.
+	/++ Object key type. +/
 	alias Key = Value;
 
-	/// Object value type.
+	/++ Object value type. +/
 	alias Value = .Value;
 
-	/// Object key-value (element) type.
+	/++ Object key-value (element) type. +/
 	struct ObjectKeyValue {
 		Key key; ///< Key part of object element.
 		Value value; ///< Value part of object element.
 	}
 
-	/// Get value as a {range|view} over object elements (key-values).
+	/++ Get value as a {range|view} over object elements (key-values). +/
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
 		private:
@@ -200,32 +200,32 @@ pure nothrow @property:
 @property const scope nothrow:
 /+pragma(inline, true):+/
 
-	/// Get array length.
+	/++ Get array length. +/
 	private size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
 
-	/// Get object length.
+	/++ Get object length. +/
 	private size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 
-	/// Value getters. TODO: These should return result types or throw
+	/++ Value getters. TODO: These should return result types or throw +/
 
-	/// Get value as boolean.
+	/++ Get value as boolean. +/
 	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
 
-	/// Get value as signed integer number.
+	/++ Get value as signed integer number. +/
 	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
 
-	/// Get value as unsigned integer number.
+	/++ Get value as unsigned integer number. +/
 	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
 
-	/// Get value as floating point number.
+	/++ Get value as floating point number. +/
 	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
 	/// ditto
 	alias float_ = floating;
 
-	/// Get value as null-terminated C-style string.
+	/++ Get value as null-terminated C-style string. +/
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
 
-	/// Get value as D-style character slice (string).
+	/++ Get value as D-style character slice (string). +/
 	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	/// ditto
 	private alias string = str;
@@ -233,7 +233,7 @@ pure nothrow @property:
 nothrow:
 	bool opCast(T : bool)() scope => _val !is null;
 
-	/// Get type.
+	/++ Get type. +/
 	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
 	/// `std.json` compliance
@@ -258,17 +258,17 @@ nothrow:
 		}
 	}
 
-	/// Type predicates:
+	/++ Type predicates: +/
 
-	/// Returns: `true` iff `this` has value `null`.
+	/++ Returns: `true` iff `this` has value `null`. +/
 	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
 	alias isNull = is_null;
 
-	/// Returns: `true` iff `this` has value `false`.
+	/++ Returns: `true` iff `this` has value `false`. +/
 	bool is_false() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE);
 	alias isFalse = is_false;
 
-	/// Returns: `true` iff `this` has value `true`.
+	/++ Returns: `true` iff `this` has value `true`. +/
 	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
 	alias isTrue = is_true;
 }
