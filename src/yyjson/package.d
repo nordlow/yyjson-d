@@ -370,6 +370,13 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(!docR);
 }
 
+/// none
+@safe pure nothrow @nogc version(yyjson_test) unittest {
+	scope root = Value();
+	assert(root.type == ValueType.NONE);
+	assert(root.isNone);
+}
+
 /// null
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `null`;
@@ -378,8 +385,8 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
 	scope root = (*docR).root;
-	assert(root.is_null);
 	assert(root.type == ValueType.NULL);
+	assert(root.isNull);
 }
 
 /// boolean
@@ -394,9 +401,9 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 		assert(root);
 		assert(root.boolean == e);
 		if (e)
-			assert(root.is_true);
+			assert(root.isTrue);
 		else
-			assert(root.is_false);
+			assert(root.isFalse);
 	}
 }
 
