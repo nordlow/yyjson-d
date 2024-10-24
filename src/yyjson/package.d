@@ -191,11 +191,12 @@ pure nothrow @property:
 	}
 
 	/// Check if element `e` is stored/contained.
-	Value* opBinaryRight(.string op)(in char[] key) const if (op == "in") {
-		assert(0); // TODO:
+	const(Value) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
+		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
 	scope ref const(Value) opIndex(in char[] key) inout return @trusted {
+		// TODO: Use yyjson_obj_get() or reuse `opBinaryRight`.
 		assert(0); // TODO:
 	}
 
@@ -668,7 +669,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 
 /// Read object with trailing commas.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	const s = `{"a":1, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
+	const s = `{"a":11, "b":{"x":3.14, "y":42}, "c":[1,2,3,],}`;
 	scope docR = s.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	assert(docR);
 	assert((*docR).byteCount == s.length);
@@ -678,6 +679,10 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(root.type == ValueType.OBJ);
 	assert(root.isObject);
 	assert(root.type_std == JSONType.object);
+	const a_val = "a" in root;
+	assert(a_val.uinteger == 11);
+	const x_val = "x" in root;
+	assert(!x_val);
 }
 
 /++ Path. +/
@@ -825,6 +830,7 @@ bool yyjson_obj_iter_init(const yyjson_val *obj, yyjson_obj_iter *iter);
 bool yyjson_obj_iter_has_next(yyjson_obj_iter *iter);
 yyjson_val *yyjson_obj_iter_next(yyjson_obj_iter *iter);
 yyjson_val *yyjson_obj_iter_get_val(yyjson_val *key);
+yyjson_val *yyjson_obj_getn(yyjson_val *obj, const char *key, size_t key_len);
 }
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
