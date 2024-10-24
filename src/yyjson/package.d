@@ -89,7 +89,7 @@ struct Value {
 
 pure nothrow @property:
 	/// `std.json` compliance. Allocates with the GC!
-	const(Value)[] arraySlice() const in(type == ValueType.ARR) {
+	const(Value)[] arraySlice() const /+return scope+/ in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
 		typeof(return) res;
 		res.reserve(length);
