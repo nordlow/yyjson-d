@@ -16,7 +16,10 @@ struct Document {
 pure nothrow @nogc:
 	@disable this(this);
 
-	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
+	this(yyjson_doc* doc, const(char)[] dat = null) in(doc) {
+		_doc = doc;
+		_store = dat;
+	}
 
 	~this() @trusted {
 		if (!_doc)
@@ -42,6 +45,7 @@ pure nothrow @nogc:
 	private alias nodeCount = valueCount;
 
 	private yyjson_doc* _doc; // non-null
+	const(char)[] _store; // data store
 }
 
 /++ Type of a JSON value (3 bit). +/
@@ -365,6 +369,7 @@ alias JSONOptions = Options; // `std.json` compliance
 /++ Parse JSON Document from `path`.
 	TODO: Add options for allocation mechanism and immutablity.
  +/
+version(none)
 Result!(Document, ReadError) readJSONDocument(in FilePath path, in Options options = Options.none) nothrow @nogc @trusted /+@reads_from_file+/ {
 	return parseJSONDocument(data, options: options);
 }
