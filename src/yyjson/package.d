@@ -15,13 +15,23 @@ import nxt.result : Result;
  +  See_Also: https://en.wikipedia.org/wiki/Mmap
  +/
 struct Document(bool memoryMapped/+https://en.wikipedia.org/wiki/Mmap+/ = false) {
-pure nothrow @nogc:
 	@disable this(this);
 
-	this(yyjson_doc* doc, const(char)[] dat = null) in(doc) {
-		_doc = doc;
-		_store = dat;
+	static if (memoryMapped) {
+		import std.mmfile : MmFile;
+		this(yyjson_doc* doc, MmFile mmf) @trusted in(doc) {
+			_doc = doc;
+			_mmf = mmf;
+			_store = cast(const(char)[])mmf[];
+		}
+	} else {
+		this(yyjson_doc* doc, const(char)[] dat = null) in(doc) {
+			_doc = doc;
+			_store = dat;
+		}
 	}
+
+pure nothrow @nogc:
 
 	~this() @trusted {
 		if (!_doc)
@@ -36,6 +46,8 @@ pure nothrow @nogc:
 
 	bool opCast(T : bool)() const scope => _doc !is null;
 
+	bool opEquals(in typeof(this) rhs) const scope => _store == rhs._store;
+
 	/++ Returns: root value or `null` if `_doc` is `null`. +/
 	const(Value) root() const scope => typeof(return)(_doc ? _doc.root : null);
 
@@ -47,6 +59,8 @@ pure nothrow @nogc:
 	private alias nodeCount = valueCount;
 
 	private yyjson_doc* _doc; // non-null
+	static if (memoryMapped)
+		MmFile _mmf;
 	const(char)[] _store; // data store
 }
 
@@ -373,7 +387,7 @@ alias JSONOptions = Options; // `std.json` compliance
 Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped = false)(in FilePath path, in Options options = Options.none) /+nothrow @nogc+/ @trusted /+@reads_from_file+/ {
 	static if (memoryMapped) {
 		mmfile = new MmFile(path);
-		const data = (cast(const(char)[])mmfile[]);
+		const data = cast(const(char)[])mmfile[];
 		return parseJSONDocumentMmap(data, options: options);
 	} else {
 		/+ Uses `read` instead of `readText` as `yyjson` verifies Unicode.
@@ -388,6 +402,8 @@ Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped =
 	const fn = "5MB-min.json";
 	benchmark!(false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 	benchmark!(false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+	benchmark!(true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
 }
 
 version(yyjson_benchmark) {
@@ -424,11 +440,11 @@ Result!(Document!(false), ReadError) parseJSONDocument(return scope const(char)[
 /++ Parse JSON Document from `mmfile`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document!(true), ReadError) parseJSONDocumentMmap(scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
+Result!(Document!(true), ReadError) parseJSONDocumentMmap(return scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
 	ReadError err;
 	const data = (cast(const(char)[])mmfile[]);
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
-	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(true)(doc, data)) : typeof(return)(err));
+	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(true)(doc, mmfile)) : typeof(return)(err));
 }
 
 /// Read document from empty string.
