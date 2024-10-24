@@ -2,17 +2,21 @@
  */
 module yyjson;
 
-// version = yyjson_dub_benchmark;
+version = yyjson_benchmark;
 
+import std.mmfile : MmFile;
 import nxt.result : Result;
 
 @safe:
 
 /++ "Immutable" JSON Document.
+ +
  +  TODO: Turn into a result type being either a non-null pointer or an error type.
  +  Descriminator can be the least significant bit.
+ +
+ +  See_Also: https://en.wikipedia.org/wiki/Mmap
  +/
-struct Document {
+struct Document(bool memoryMapped/+https://en.wikipedia.org/wiki/Mmap+/ = false) {
 pure nothrow @nogc:
 	@disable this(this);
 
@@ -362,28 +366,60 @@ struct Options {
 	enum none = typeof(this).init;
 	private yyjson_read_flag _flag;
 	bool mutable;
-	bool useMemoryMappedRead; ///< Use `std.mmfile` when reading instead of GC.
 }
 alias JSONOptions = Options; // `std.json` compliance
 
 /++ Parse JSON Document from `path`.
 	TODO: Add options for allocation mechanism and immutablity.
  +/
-version(none)
-Result!(Document, ReadError) readJSONDocument(in FilePath path, in Options options = Options.none) nothrow @nogc @trusted /+@reads_from_file+/ {
-	if (options.useMemoryMappedRead) {
+Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped = false)(in FilePath path, in Options options = Options.none) /+nothrow @nogc+/ @trusted /+@reads_from_file+/ {
+	static if (memoryMapped) {
+		mmfile = new MmFile(path);
+		const data = (cast(const(char)[])mmfile[]);
+		return parseJSONDocumentMmap(data, options: options);
 	} else {
+		/+ Uses `read` instead of `readText` as `yyjson` verifies Unicode.
+		   See_Also: `ALLOW_INVALID_UNICODE`. +/
+		import std.file : read;
+		const data = cast(const(char)[])path.str.read();
+		return parseJSONDocument(data, options: options);
 	}
-	return parseJSONDocument(data, options: options);
+}
+
+@safe version(yyjson_benchmark) version(yyjson_test) unittest {
+	import std.path : buildPath;
+	const path = FilePath(homeDir.str.buildPath("5MB-min.json"));
+	() @trusted {
+		auto sw = StopWatch(AutoStart.yes);
+		const docR = path.readJSONDocument!(false)(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+		debug const dur = sw.peek;
+		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
+		import std.stdio : writeln;
+		if (docR) {
+ 			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+		} else {
+			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
+		}
+	}();
 }
 
 /++ Parse JSON Document from `data`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document, ReadError) parseJSONDocument(return scope const(char)[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
+Result!(Document!(false), ReadError) parseJSONDocument(return scope const(char)[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
-	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc, data)) : typeof(return)(err));
+	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(false)(doc, data)) : typeof(return)(err));
+}
+
+/++ Parse JSON Document from `mmfile`.
+ +  See_Also: https://dlang.org/library/std/json/parse_json.html
+ +/
+Result!(Document!(true), ReadError) parseJSONDocumentMmap(scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
+	ReadError err;
+	const data = (cast(const(char)[])mmfile[]);
+    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
+	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(true)(doc, data)) : typeof(return)(err));
 }
 
 /// Read document from empty string.
@@ -622,10 +658,29 @@ struct DirPath {
 	Path path;
 	alias path this;
 }
+/++ Get path to home directory.
+ +	See_Also: `tempDir`
+ +  See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
+ +/
+private DirPath homeDir() {
+	import std.process : environment;
+    version(Windows) {
+        // On Windows, USERPROFILE is typically used, but HOMEPATH is an alternative
+		if (const home = environment.get("USERPROFILE"))
+			return typeof(return)(home);
+        // Fallback to HOMEDRIVE + HOMEPATH
+        const homeDrive = environment.get("HOMEDRIVE");
+        const homePath = environment.get("HOMEPATH");
+        if (homeDrive && homePath)
+            return typeof(return)(buildPath(homeDrive, homePath));
+    } else {
+        if (const home = environment.get("HOME"))
+			return typeof(return)(home);
+    }
+    throw new Exception("No home directory environment variable is set.");
+}
 
 version (yyjson_dub_benchmark) {
-
-import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 import std.file : dirEntries, SpanMode;
 import std.path : buildPath, baseName, expandTilde;
 import std.mmfile : MmFile;
@@ -672,30 +727,11 @@ version(none)
 	}
 }
 
-private double bytesPer(T)(in T num, in Duration dur)
-=> (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
-
-/++ Get path to home directory.
- +	See_Also: `tempDir`
- +  See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
- +/
-private DirPath homeDir() {
-	import std.process : environment;
-    version(Windows) {
-        // On Windows, USERPROFILE is typically used, but HOMEPATH is an alternative
-		if (const home = environment.get("USERPROFILE"))
-			return typeof(return)(home);
-        // Fallback to HOMEDRIVE + HOMEPATH
-        const homeDrive = environment.get("HOMEDRIVE");
-        const homePath = environment.get("HOMEPATH");
-        if (homeDrive && homePath)
-            return typeof(return)(buildPath(homeDrive, homePath));
-    } else {
-        if (const home = environment.get("HOME"))
-			return typeof(return)(home);
-    }
-    throw new Exception("No home directory environment variable is set.");
 }
+
+version(yyjson_benchmark) {
+	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
+	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 }
 
 version(unittest) {
