@@ -424,14 +424,47 @@ Result!(Document!(Char, memoryMapped), ReadError) readJSONDocument(Char = const(
 	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
 }
 
+@safe version(yyjson_benchmark) unittest {
+	const fn = "metaModel.json";
+	alias Char = const(char);
+	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE), printElements: true);
+}
+
 version(yyjson_benchmark) {
 	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 
-	private void benchmark(Char = const(char), bool memoryMapped = false)(in char[] filename, Options options = Options.init) {
+	private void benchmark(Char = const(char), bool memoryMapped = false)(in char[] filename, Options options = Options.init, bool printElements = false) {
 		import std.path : buildPath;
 		const path = FilePath(homeDir.str.buildPath(filename));
 		auto sw = StopWatch(AutoStart.yes);
 		const docR = path.readJSONDocument!(Char, false)(options);
+		if (printElements) {
+			foreach (const section; (*docR).root.object) {
+				import std.stdio;
+				writeln(section.key.string, " => ", section.value.type);
+				switch (section.key.string) {
+				// case "metadata":
+				// 	break;
+				case "requests":
+				case "notifications":
+				case "structures":
+				case "enumerations":
+				case "typeAliases":
+				 	foreach (const i; section.value.arrayRange) {
+						writeln("- ", i, " of type ", i.type);
+						foreach (const p1; i.object) { // property
+							writeln("  - ", p1.key.string, " => ", p1.value, " of type ", p1.value.type);
+						}
+					}
+					break;
+				default:
+					break;
+				}
+			}
+		}
 		const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
 		import std.stdio : writeln;
