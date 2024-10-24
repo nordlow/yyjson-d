@@ -2,4 +2,5 @@
 
 set -euo pipefail
 
-exec ./test.sh
+./test.sh
+./benchmark.sh

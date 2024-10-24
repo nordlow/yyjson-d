@@ -2,8 +2,6 @@
  */
 module yyjson;
 
-version = yyjson_benchmark;
-
 import std.mmfile : MmFile;
 import nxt.result : Result;
 
@@ -400,13 +398,13 @@ version(yyjson_benchmark) {
 		const path = FilePath(homeDir.str.buildPath(filename));
 		auto sw = StopWatch(AutoStart.yes);
 		const docR = path.readJSONDocument!(false)(options);
-		debug const dur = sw.peek;
+		const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
-		debug import std.stdio : writeln;
+		import std.stdio : writeln;
 		if (docR) {
- 			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+ 			writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 		} else {
-			debug writeln(`Parsing `, path, " FAILED");
+			writeln(`Parsing `, path, " FAILED");
 		}
 	}
 

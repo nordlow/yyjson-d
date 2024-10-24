@@ -2,4 +2,5 @@
 
 set -euo pipefail
 
-exec dub -q test --compiler=ldc2
+dub -q test --compiler=dmd
+dub -q test --compiler=ldc2
