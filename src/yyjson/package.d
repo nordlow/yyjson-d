@@ -769,7 +769,7 @@ version(none)
 
 }
 
-version(unittest) {
+version(yyjson_test) version(unittest) {
 	import std.conv : to;
 }
 
