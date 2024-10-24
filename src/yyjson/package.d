@@ -357,13 +357,22 @@ struct ReadError {
 struct Options {
 	enum none = typeof(this).init;
 	private yyjson_read_flag _flag;
+	bool mutable;
+	bool useMemoryMappedRead; ///< Use `std.mmfile` when reading instead of GC.
 }
 alias JSONOptions = Options; // `std.json` compliance
+
+/++ Parse JSON Document from `path`.
+	TODO: Add options for allocation mechanism and immutablity.
+ +/
+Result!(Document, ReadError) readJSONDocument(in FilePath path, in Options options = Options.none) nothrow @nogc @trusted /+@reads_from_file+/ {
+	return parseJSONDocument(data, options: options);
+}
 
 /++ Parse JSON Document from `data`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document, ReadError) parseJSONDocument(return scope const char[] data, in Options options = Options.none) @trusted pure nothrow @nogc {
+Result!(Document, ReadError) parseJSONDocument(return scope const char[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return)(err));
