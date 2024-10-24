@@ -467,11 +467,19 @@ Result!(Document!(true), ReadError) parseJSONDocumentMmap(return scope MmFile mm
 	assert(root.isNone);
 }
 
+/// Equality value.
+@safe pure nothrow @nogc version(yyjson_test) unittest {
+	const s = `null`;
+	scope const docR = s.parseJSONDocument();
+	assert(docR == docR);
+}
+
 /// Read null value.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `null`;
 	scope docR = s.parseJSONDocument();
 	assert(docR);
+	assert((*docR).data.length == s.length);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
 	scope root = (*docR).root;
