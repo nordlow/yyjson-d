@@ -351,7 +351,7 @@ alias JSONOptions = Options; // `std.json` compliance
 /++ Parse JSON Document from `data`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document, ReadError) parseJSONDocument(in char[] data, in Options options = Options.none) @trusted pure nothrow @nogc {
+Result!(Document, ReadError) parseJSONDocument(return scope const char[] data, in Options options = Options.none) @trusted pure nothrow @nogc {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return)(err));
@@ -359,7 +359,7 @@ Result!(Document, ReadError) parseJSONDocument(in char[] data, in Options option
 
 /++ Wrapper for compliance with `std.json.parseJSON`.
  +/
-Result!(Document, ReadError) parseJSON(in char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
+Result!(Document, ReadError) parseJSON(return scope const char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
 in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	return data.parseJSONDocument(options);
 }
