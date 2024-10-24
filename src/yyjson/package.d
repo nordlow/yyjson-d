@@ -406,7 +406,7 @@ version(yyjson_benchmark) {
 		if (docR) {
  			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 		} else {
-			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
+			debug writeln(`Parsing `, path, " FAILED");
 		}
 	}
 
