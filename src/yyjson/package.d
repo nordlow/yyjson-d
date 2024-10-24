@@ -386,22 +386,31 @@ Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped =
 	}
 }
 
-@safe version(yyjson_benchmark) version(yyjson_test) unittest {
-	static void benchmark(bool memoryMapped = false)(in char[] filename) {
+@safe version(yyjson_benchmark) unittest {
+	const fn = "5MB-min.json";
+	benchmark!(false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+}
+
+version(yyjson_benchmark) {
+	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
+
+	static void benchmark(bool memoryMapped = false)(in char[] filename, Options options = Options.init) {
 		import std.path : buildPath;
 		const path = FilePath(homeDir.str.buildPath(filename));
 		auto sw = StopWatch(AutoStart.yes);
-		const docR = path.readJSONDocument!(false)(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+		const docR = path.readJSONDocument!(false)(options);
 		debug const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
-		import std.stdio : writeln;
+		debug import std.stdio : writeln;
 		if (docR) {
  			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 		} else {
 			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 		}
 	}
-	benchmark!(false)("5MB-min.json");
+
+	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 }
 
 /++ Parse JSON Document from `data`.
@@ -728,11 +737,6 @@ version(none)
 	}
 }
 
-}
-
-version(yyjson_benchmark) {
-	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
-	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 }
 
 version(unittest) {
