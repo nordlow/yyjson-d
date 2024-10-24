@@ -387,9 +387,9 @@ Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped =
 }
 
 @safe version(yyjson_benchmark) version(yyjson_test) unittest {
-	import std.path : buildPath;
-	const path = FilePath(homeDir.str.buildPath("5MB-min.json"));
-	() @trusted {
+	static void benchmark(bool memoryMapped = false)(in char[] filename) {
+		import std.path : buildPath;
+		const path = FilePath(homeDir.str.buildPath(filename));
 		auto sw = StopWatch(AutoStart.yes);
 		const docR = path.readJSONDocument!(false)(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 		debug const dur = sw.peek;
@@ -400,7 +400,8 @@ Result!(Document!(memoryMapped), ReadError) readJSONDocument(bool memoryMapped =
 		} else {
 			debug writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 		}
-	}();
+	}
+	benchmark!(false)("5MB-min.json");
 }
 
 /++ Parse JSON Document from `data`.
