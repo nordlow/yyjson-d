@@ -22,6 +22,15 @@ buildType "unittest" {
 	dflags "-Xcc=-fuse-ld=lld"  # use better linker
 }
 
+buildType "unittest-without-coverage" {
+	versions "yyjson_test"
+	dflags "-g" "-checkaction=context" "-allinst" "-unittest"
+	dflags "-fsanitize=address" platform="posix-ldc"
+	dflags "-debug" platform="dmd"
+	dflags "--d-debug" platform="ldc"
+	dflags "-Xcc=-fuse-ld=lld"  # use better linker
+}
+
 buildType "benchmark-release" {
 	versions "yyjson_benchmark"
 	buildOptions "releaseMode" "inline" "optimize"
