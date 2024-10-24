@@ -2,7 +2,7 @@
  */
 module yyjson;
 
-// version = yyjson_dub_benchmark;
+version = yyjson_dub_benchmark;
 
 import nxt.result : Result;
 
@@ -15,6 +15,9 @@ import nxt.result : Result;
 struct Document {
 pure nothrow @nogc:
 	@disable this(this);
+
+	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
+
 	~this() @trusted {
 		if (!_doc)
 			return;
@@ -23,7 +26,6 @@ pure nothrow @nogc:
 		(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
 		// uncommented because ASan complains about this: _doc.alc = typeof(_doc.alc).init;
 	}
-	this(yyjson_doc* _doc) in(_doc) { this._doc = _doc; }
 
 /+pragma(inline, true):+/
 
@@ -65,8 +67,7 @@ enum ValueType : yyjson_type {
 /++ Type of a JSON value being a superset of `std.json.ValueType`.
  + `std.json` compliance.
  +/
-enum JSONType : byte
-{
+enum JSONType : byte {
     null_,
     string,
     integer,
@@ -99,6 +100,7 @@ pure nothrow @property:
 
 @nogc:
 
+	/// Get value as range over array elements.
 	auto arrayRange() const in(type == ValueType.ARR) {
 		static struct Result {
 		private:
@@ -139,6 +141,7 @@ pure nothrow @property:
 		Value value;
 	}
 
+	/// Get value as range over object elements (key-values).
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
 		private:
@@ -186,22 +189,40 @@ pure nothrow @property:
 @property const scope nothrow:
 /+pragma(inline, true):+/
 
-	/// Value getters. TODO: These should return result types or throw
-	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
-	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
-	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
-	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
-	alias float_ = floating;
-	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
-	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
-	private alias string = str;
+	/// Get array length.
+	private size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
 
-	size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
-	size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
+	/// Get object length.
+	private size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
+
+	/// Value getters. TODO: These should return result types or throw
+
+	/// Get value as boolean.
+	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
+
+	/// Get value as signed integer number.
+	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
+
+	/// Get value as unsigned integer number.
+	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
+
+	/// Get value as floating point number.
+	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
+	/// ditto
+	alias float_ = floating;
+
+	/// Get value as null-terminated C-style string.
+	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
+
+	/// Get value as D-style character slice (string).
+	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
+	/// ditto
+	private alias string = str;
 
 nothrow:
 	bool opCast(T : bool)() scope => _val !is null;
 
+	/// Get type.
 	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
 
 	/// `std.json` compliance
@@ -227,10 +248,16 @@ nothrow:
 	}
 
 	/// Type predicates:
+
+	/// Returns: `true` iff `this` has value `null`.
 	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
 	alias isNull = is_null;
+
+	/// Returns: `true` iff `this` has value `false`.
 	bool is_false() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE);
 	alias isFalse = is_false;
+
+	/// Returns: `true` iff `this` has value `true`.
 	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
 	alias isTrue = is_true;
 }
@@ -503,11 +530,32 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 }
 
 version (yyjson_dub_benchmark) {
+
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
+import std.file : dirEntries, SpanMode;
+import std.path : buildPath, baseName, expandTilde;
+import std.mmfile : MmFile;
+debug import std.stdio : writeln;
+
 @safe version(yyjson_test) unittest {
-	import std.file : dirEntries, SpanMode;
-	import std.path : buildPath, baseName;
-	import std.mmfile : MmFile;
+	const path = homeDir.str.buildPath("5MB-min.json");
+	() @trusted {
+		scope mmfile = new MmFile(path);
+		const src = (cast(const(char)[])mmfile[]);
+		auto sw = StopWatch(AutoStart.yes);
+		const doc = src.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+		debug const dur = sw.peek;
+		const mbps = src.length.bytesPer(dur) * 1e-6;
+		if (doc) {
+ 			debug writeln(`Parsing `, path, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+		} else {
+			debug writeln(`Parsing `, path, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
+		}
+	}();
+}
+
+version(none)
+@safe version(yyjson_test) unittest {
 	const root = homeDir.str.buildPath(".dub/packages.all");
 	foreach (ref dent; dirEntries(root, SpanMode.depth)) { // TODO: Use overload of dirEntries where depth-span can be set
 		if (dent.isDir)
@@ -515,9 +563,8 @@ import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 		if (dent.baseName == "dub.json")
 			() @trusted {
 				scope mmfile = new MmFile(dent.name);
-				debug import std.stdio : writeln;
 				// debug writeln("Parsing ", dent.name, " ...");
-				const src = (cast(char[])mmfile[]);
+				const src = (cast(const(char)[])mmfile[]);
 				auto sw = StopWatch(AutoStart.yes);
 				const doc = src.parseJSONDocument(Options(ReadFlag.ALLOW_TRAILING_COMMAS));
 				debug const dur = sw.peek;
