@@ -234,7 +234,11 @@ nothrow:
 	bool opCast(T : bool)() scope => _val !is null;
 
 	/++ Get type. +/
-	ValueType type() scope => cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+	ValueType type() scope {
+		if (_val is null)
+			return ValueType.NONE;
+		return cast(typeof(return))(_val.tag & YYJSON_TYPE_MASK);
+	}
 
 	/// `std.json` compliance
 	JSONType type_std() scope {
@@ -260,17 +264,34 @@ nothrow:
 
 	/++ Type predicates: +/
 
+	/++ Returns: `true` iff `this` has value `none` (being uninitialized). +/
+	bool is_none() => _val is null;
+	alias isNone = is_none;
+
 	/++ Returns: `true` iff `this` has value `null`. +/
-	bool is_null() => _val.tag == YYJSON_TYPE_NULL;
+	bool is_null() => (_val.tag == YYJSON_TYPE_NULL) != 0;
 	alias isNull = is_null;
 
 	/++ Returns: `true` iff `this` has value `false`. +/
-	bool is_false() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE);
+	bool is_false() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
 	alias isFalse = is_false;
 
 	/++ Returns: `true` iff `this` has value `true`. +/
-	bool is_true() => _val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE);
+	bool is_true() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
 	alias isTrue = is_true;
+
+	/++ Returns: `true` iff `this` is a string. +/
+	bool is_string() => (_val.tag & (YYJSON_TYPE_STR)) != 0;
+	alias isString = is_string;
+
+	/++ Returns: `true` iff `this` is an array. +/
+	bool is_array() => (_val.tag & (YYJSON_TYPE_ARR)) != 0;
+	alias isArray = is_array;
+
+	/++ Returns: `true` iff `this` is an object. +/
+	bool is_object() => (_val.tag & (YYJSON_TYPE_OBJ)) != 0;
+	alias isObject = is_object;
+
 }
 alias JSONValue = Value; // `std.json` compliance
 
@@ -426,6 +447,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
+	assert(root.isString);
 	assert(root.type_std == JSONType.string);
 	assert(root.str == "alpha");
 }
@@ -441,6 +463,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
+	assert(root.isArray);
 	assert(root.arrayLength == 3);
 	size_t ix = 0;
 	assert(root.arrayRange.length == 3);
@@ -537,6 +560,7 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
+	assert(root.isObject);
 	assert(root.type_std == JSONType.object);
 }
 
