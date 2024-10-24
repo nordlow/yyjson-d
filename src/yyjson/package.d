@@ -134,11 +134,16 @@ pure nothrow @property:
 		return Result(_val);
  	}
 
+	/// Object key type.
 	alias Key = Value;
 
+	/// Object value type.
+	alias Value = .Value;
+
+	/// Object key-value (element) type.
 	struct ObjectKeyValue {
-		Key key;
-		Value value;
+		Key key; ///< Key part of object element.
+		Value value; ///< Value part of object element.
 	}
 
 	/// Get value as range over object elements (key-values).
