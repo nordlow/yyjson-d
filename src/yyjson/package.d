@@ -100,7 +100,7 @@ pure nothrow @property:
 
 @nogc:
 
-	/// Get value as range over array elements.
+	/// Get value as a {range|view} over array elements.
 	auto arrayRange() const in(type == ValueType.ARR) {
 		static struct Result {
 		private:
@@ -146,7 +146,7 @@ pure nothrow @property:
 		Value value; ///< Value part of object element.
 	}
 
-	/// Get value as range over object elements (key-values).
+	/// Get value as a {range|view} over object elements (key-values).
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
 		private:
