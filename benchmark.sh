@@ -2,13 +2,11 @@
 
 set -euo pipefail
 
-echo
-echo "# Benchmarking ..."
+echo -e "echo
+# Benchmarking ..."
 
-echo
-echo "## Benchmarking with DMD ..."
+echo -e "\n## Benchmarking with DMD ..."
 dub -q test --compiler=dmd --build=benchmark-release
 
-echo
-echo "## Benchmarking with LDC ..."
+echo e "\n## Benchmarking with LDC ..."
 dub -q test --compiler=ldc2 --build=benchmark-release
