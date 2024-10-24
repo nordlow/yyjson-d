@@ -190,6 +190,15 @@ pure nothrow @property:
 		Value value; ///< Value part of object element.
 	}
 
+	/// Check if element `e` is stored/contained.
+	Value* opBinaryRight(.string op)(in char[] key) const if (op == "in") {
+		assert(0); // TODO:
+	}
+
+	scope ref const(Value) opIndex(in char[] key) inout return @trusted {
+		assert(0); // TODO:
+	}
+
 	/++ Get value as a {range|view} over object elements (key-values). +/
 	auto objectRange() const in(type == ValueType.OBJ) {
 		static struct Result {
