@@ -88,6 +88,10 @@ struct Value {
 	private yyjson_val* _val;
 
 pure nothrow @property:
+	this(const yyjson_val* val) const scope nothrow @nogc @trusted {
+		_val = cast(yyjson_val*)val;
+	}
+
 	/// `std.json` compliance. Allocates with the GC!
 	const(Value)[] arraySlice() const /+return scope+/ in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
@@ -126,11 +130,19 @@ pure nothrow @property:
 				nextFront();
 				_length -= 1;
 			}
+		const @property:
+			version(none) // TODO: Support
+			/** Returns the element at the specified position in this array.
+				Returns NULL if array is NULL/empty or the index is out of bounds.
+				@warning This function takes a linear search time if array is not flat.
+				For example: `[1,{},3]` is flat, `[1,[2],3]` is not flat. */
+			Value at(size_t i) const {
+				return typeof(return)(yyjson_arr_get(_val, i));
+			}
 			// Value opIndex(in size_t i) return scope {
 			// }
 			// Value opSlice(in size_t i, in size_t j) return scope {
 			// }
-		const @property:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _val is null;
 			const(Value) front() return scope in(!empty) => typeof(return)(_val);
@@ -622,7 +634,7 @@ debug import std.stdio : writeln;
 version(none)
 @safe version(yyjson_test) unittest {
 	const root = homeDir.str.buildPath(".dub/packages.all");
-	foreach (ref dent; dirEntries(root, SpanMode.depth)) { // TODO: Use overload of dirEntries where depth-span can be set
+	foreach (ref dent; dirEntries(root, SpanMode.depth)) {
 		if (dent.isDir)
 			continue;
 		if (dent.baseName == "dub.json")
