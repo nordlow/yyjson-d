@@ -2,7 +2,7 @@
  */
 module yyjson;
 
-version = yyjson_dub_benchmark;
+// version = yyjson_dub_benchmark;
 
 import nxt.result : Result;
 
@@ -126,6 +126,10 @@ pure nothrow @property:
 				nextFront();
 				_length -= 1;
 			}
+			// Value opIndex(in size_t i) return scope {
+			// }
+			// Value opSlice(in size_t i, in size_t j) return scope {
+			// }
 		const @property:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _val is null;
