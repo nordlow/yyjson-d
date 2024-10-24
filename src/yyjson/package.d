@@ -401,10 +401,11 @@ version(yyjson_benchmark) {
 		const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
 		import std.stdio : writeln;
+		const type = memoryMapped ? " memory mapped" : "";
 		if (docR) {
- 			writeln(`Parsing `, path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+ 			writeln(`Parsing`, type, " ", path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED, options: ", options);
 		} else {
-			writeln(`Parsing `, path, " FAILED");
+			writeln(`Parsing`, type, " ", path, " FAILED, options: ", options);
 		}
 	}
 
