@@ -371,16 +371,19 @@ alias JSONOptions = Options; // `std.json` compliance
  +/
 version(none)
 Result!(Document, ReadError) readJSONDocument(in FilePath path, in Options options = Options.none) nothrow @nogc @trusted /+@reads_from_file+/ {
+	if (options.useMemoryMappedRead) {
+	} else {
+	}
 	return parseJSONDocument(data, options: options);
 }
 
 /++ Parse JSON Document from `data`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document, ReadError) parseJSONDocument(return scope const char[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
+Result!(Document, ReadError) parseJSONDocument(return scope const(char)[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
-	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return)(err));
+	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc, data)) : typeof(return)(err));
 }
 
 /// Read document from empty string.
