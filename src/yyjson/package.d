@@ -357,13 +357,6 @@ Result!(Document, ReadError) parseJSONDocument(return scope const char[] data, i
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document(doc)) : typeof(return)(err));
 }
 
-/++ Wrapper for compliance with `std.json.parseJSON`.
- +/
-Result!(Document, ReadError) parseJSON(return scope const char[] data, int maxDepth = -1, in Options options = Options.none) @trusted pure nothrow @nogc
-in(maxDepth == -1, "Setting `maxDepth` is not supported") {
-	return data.parseJSONDocument(options);
-}
-
 /// Read document from empty string.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = ``;
