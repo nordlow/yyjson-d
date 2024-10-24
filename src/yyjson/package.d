@@ -572,6 +572,35 @@ in(maxDepth == -1, "Setting `maxDepth` is not supported") {
 	assert(root.type_std == JSONType.object);
 }
 
+/++ Path. +/
+struct Path {
+	this(string str, in bool normalize = false) pure nothrow @nogc {
+		this.str = str;
+	}
+	string str;
+pure nothrow @nogc:
+	bool opCast(T : bool)() const scope => str !is null;
+	string toString() const @property => str;
+}
+
+/++ (Regular) file path (on local file system). +/
+struct FilePath {
+	this(string str, in bool normalize = false) pure nothrow @nogc {
+		this.path = Path(str, normalize);
+	}
+	Path path;
+	alias path this;
+}
+
+/++ Directory path (on local file system). +/
+struct DirPath {
+	this(string path, in bool normalize = false) pure nothrow @nogc {
+		this.path = Path(path, normalize);
+	}
+	Path path;
+	alias path this;
+}
+
 version (yyjson_dub_benchmark) {
 
 import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
@@ -623,23 +652,6 @@ version(none)
 
 private double bytesPer(T)(in T num, in Duration dur)
 => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
-
-private struct Path {
-	this(string str) pure nothrow @nogc {
-		this.str = str;
-	}
-	string str;
-	pure nothrow @nogc:
-	bool opCast(T : bool)() const scope => str !is null;
-}
-
-private struct DirPath {
-	this(string path) pure nothrow @nogc {
-		this.path = Path(path);
-	}
-	Path path;
-	alias path this;
-}
 
 /++ Get path to home directory.
  +	See_Also: `tempDir`
