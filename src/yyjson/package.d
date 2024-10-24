@@ -46,19 +46,25 @@ pure nothrow @nogc:
 
 	bool opCast(T : bool)() const scope => _doc !is null;
 
-	bool opEquals(in typeof(this) rhs) const scope => _store == rhs._store;
+	bool opEquals(in typeof(this) rhs) const scope => _store == rhs._store; // prevent complation error with Object.opEquals for `_mmf`
 
-	/++ Returns: root value or `null` if `_doc` is `null`. +/
+	/++ Returns: Root value or `null` if `_doc` is `null`. +/
 	const(Value) root() const scope => typeof(return)(_doc ? _doc.root : null);
 
-	/++ Returns: total number of bytes read (nonzero). +/
+	/++ Returns: Total number of bytes read (nonzero). +/
 	size_t byteCount() const scope => _doc.dat_read;
 
-	/++ Returns: total number of (node) values read (nonzero). +/
+	/++ Returns: Total number of (node) values read (nonzero). +/
 	size_t valueCount() const scope => _doc.val_read;
 	private alias nodeCount = valueCount;
 
-	private yyjson_doc* _doc; // non-null
+	/++ Returns: Original source data. +/
+	const(char)[] data() const return scope => _store;
+	/// ditto
+	alias source = data;
+
+private:
+	yyjson_doc* _doc; // non-null
 	static if (memoryMapped)
 		MmFile _mmf;
 	const(char)[] _store; // data store
