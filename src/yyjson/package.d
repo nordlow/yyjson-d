@@ -19,13 +19,13 @@ struct Document(bool memoryMapped/+https://en.wikipedia.org/wiki/Mmap+/ = false)
 
 	static if (memoryMapped) {
 		import std.mmfile : MmFile;
-		this(yyjson_doc* doc, MmFile mmf) @trusted in(doc) {
+		this(const(yyjson_doc)* doc, MmFile mmf) @trusted in(doc) {
 			_doc = doc;
 			_mmf = mmf;
 			_store = cast(const(char)[])mmf[];
 		}
 	} else {
-		this(yyjson_doc* doc, const(char)[] dat = null) in(doc) {
+		this(const(yyjson_doc)* doc, const(char)[] dat = null) in(doc) {
 			_doc = doc;
 			_store = dat;
 		}
@@ -34,11 +34,12 @@ struct Document(bool memoryMapped/+https://en.wikipedia.org/wiki/Mmap+/ = false)
 pure nothrow @nogc:
 
 	~this() @trusted {
+		auto mdoc = cast(yyjson_doc*)_doc;
 		if (!_doc)
 			return;
 		if (_doc.str_pool)
-			(cast(FreeFn)(_doc.alc.free))(_doc.alc.ctx, _doc.str_pool);
-		(cast(FreeFn)_doc.alc.free)(_doc.alc.ctx, _doc);
+			(cast(FreeFn)(_doc.alc.free))(mdoc.alc.ctx, mdoc.str_pool);
+		(cast(FreeFn)mdoc.alc.free)(mdoc.alc.ctx, mdoc);
 		// uncommented because ASan complains about this: _doc.alc = typeof(_doc.alc).init;
 	}
 
@@ -64,7 +65,7 @@ pure nothrow @nogc:
 	alias source = data;
 
 private:
-	yyjson_doc* _doc; // non-null
+	const(yyjson_doc)* _doc; // non-null
 	static if (memoryMapped)
 		MmFile _mmf;
 	const(char)[] _store; // data store
@@ -114,7 +115,7 @@ struct Value {
 	private yyjson_val* _val;
 
 pure nothrow @property:
-	this(const yyjson_val* val) const scope nothrow @nogc @trusted {
+	this(const(yyjson_val)* val) const scope nothrow @nogc @trusted {
 		_val = cast(yyjson_val*)val;
 	}
 
@@ -135,12 +136,12 @@ pure nothrow @property:
 		static struct Result {
 		private:
 			yyjson_arr_iter _iter;
-			yyjson_val* _val;
+			const(yyjson_val)* _val;
 			size_t _length;
 		scope pure nothrow @safe @nogc:
 		/+pragma(inline, true):+/
 			@disable this(this);
-			this(const yyjson_val* arr) @trusted {
+			this(const(yyjson_val)* arr) @trusted {
 				_length = yyjson_arr_size(arr);
 				yyjson_arr_iter_init(cast()arr, &_iter);
 				nextFront();
@@ -194,12 +195,12 @@ pure nothrow @property:
 		static struct Result {
 		private:
 			yyjson_obj_iter _iter;
-			yyjson_val* _key;
+			const(yyjson_val)* _key;
 			size_t _length;
 		scope pure nothrow @safe @nogc:
 		/+pragma(inline, true):+/
 			@disable this(this);
-			this(const yyjson_val* obj) @trusted {
+			this(const(yyjson_val)* obj) @trusted {
 				_length = yyjson_obj_size(obj);
 				yyjson_obj_iter_init(cast()obj, &_iter);
 				nextFront();
