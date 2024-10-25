@@ -119,7 +119,7 @@ pure nothrow @property:
 		_val = cast(yyjson_val*)val;
 	}
 
-	/// `std.json` compliance. Allocates with the GC!
+	/// For `std.json` compliance. Allocates with the GC!
 	const(Value)[] arraySlice() const /+return scope+/ in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
 		typeof(return) res;
@@ -131,7 +131,9 @@ pure nothrow @property:
 
 @nogc:
 
-	/// Get value as a {range|view} over array elements.
+	/++ TODO: Get value as an array. +/
+
+	/++ Get value as a {range|view} over array elements. +/
 	auto arrayRange() const in(type == ValueType.ARR) {
 		static struct Result {
 		private:
@@ -190,15 +192,17 @@ pure nothrow @property:
 		Value value; ///< Value part of object element.
 	}
 
-	/// Check if element with key `key` is stored/contained.
+	/++ Check if element with key `key` is stored/contained. +/
 	const(Value) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
-	/// Get element value with key `key`.
+	/++ Get element value with key `key`. +/
 	const(Value) opIndex(in char[] key) const return scope @trusted {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
+
+	/++ TODO: Get value as an object. +/
 
 	/++ Get value as a {range|view} over object elements (key-values). +/
 	auto objectRange() const in(type == ValueType.OBJ) {
@@ -416,55 +420,69 @@ Result!(Document!(Char, memoryMapped), ReadError) readJSONDocument(Char = const(
 }
 
 @safe version(yyjson_benchmark) unittest {
-	const fn = "5MB-min.json";
+	import std.path : buildPath;
+	import std.file : exists;
+	const fn = FilePath("5MB-min.json");
+	const path = FilePath(homeDir.str.buildPath(fn.str));
+	if (!path.str.exists)
+		return;
 	alias Char = const(char);
-	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
-	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+	benchmark!(Char, false)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, false)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
 }
 
 @safe version(yyjson_benchmark) unittest {
-	const fn = "metaModel.json";
+	import std.path : buildPath;
+	import std.file : exists;
+	const fn = FilePath("metaModel.json");
+	const path = FilePath(homeDir.str.buildPath(fn.str));
+	if (!path.str.exists)
+		return;
 	alias Char = const(char);
-	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	benchmark!(Char, false)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
-	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
-	benchmark!(Char, true)(fn, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE), printElements: true);
+	benchmark!(Char, false)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, false)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE));
+	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS));
+	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE), printElements: true);
+}
+
+/++ Convert convert tree sitter meta model `mmd` to D code. +/
+string convertTreeSitterMetaModelToDCode(const Value mmd) {
+	typeof(return) res;
+	foreach (const section; mmd.object) {
+		import std.stdio;
+		writeln(section.key.string, " => ", section.value.type);
+		switch (section.key.string) {
+		case "metadata":
+			break;
+		case "requests":
+		case "notifications":
+		case "structures":
+		case "enumerations":
+		case "typeAliases":
+			foreach (const i; section.value.array) {
+				writeln("- ", i, " of type ", i.type);
+				foreach (const p1; i.objectRange) { // property
+					writeln("  - ", p1.key.string, " => ", p1.value, " of type ", p1.value.type);
+				}
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	return res;
 }
 
 version(yyjson_benchmark) {
 	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 
-	private void benchmark(Char = const(char), bool memoryMapped = false)(in char[] filename, Options options = Options.init, bool printElements = false) {
-		import std.path : buildPath;
-		const path = FilePath(homeDir.str.buildPath(filename));
+	private void benchmark(Char = const(char), bool memoryMapped = false)(const FilePath path, Options options = Options.init, bool printElements = false) {
 		auto sw = StopWatch(AutoStart.yes);
 		const docR = path.readJSONDocument!(Char, false)(options);
-		if (printElements) {
-			foreach (const section; (*docR).root.object) {
-				import std.stdio;
-				writeln(section.key.string, " => ", section.value.type);
-				switch (section.key.string) {
-				// case "metadata":
-				// 	break;
-				case "requests":
-				case "notifications":
-				case "structures":
-				case "enumerations":
-				case "typeAliases":
-				 	foreach (const i; section.value.arrayRange) {
-						writeln("- ", i, " of type ", i.type);
-						foreach (const p1; i.object) { // property
-							writeln("  - ", p1.key.string, " => ", p1.value, " of type ", p1.value.type);
-						}
-					}
-					break;
-				default:
-					break;
-				}
-			}
-		}
+		if (printElements)
+			(*docR).root.convertTreeSitterMetaModelToDCode();
 		const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
 		import std.stdio : writeln;
