@@ -253,10 +253,10 @@ pure nothrow @property:
 @property const scope nothrow:
 /+pragma(inline, true):+/
 
-	/++ Get array length. +/
+	/++ Get length of `this` as an array. +/
 	private size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
 
-	/++ Get object length. +/
+	/++ Get length of `this` as an object. +/
 	private size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
 
 	/++ Value getters. TODO: These should return result types or throw +/
