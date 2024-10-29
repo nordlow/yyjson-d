@@ -261,24 +261,24 @@ pure nothrow @property:
 
 	/++ Value getters. TODO: These should return result types or throw +/
 
-	/++ Get value as boolean. +/
+	/++ Get value as a boolean. +/
 	bool boolean() @trusted in(type == ValueType.BOOL) => unsafe_yyjson_get_bool(cast(yyjson_val*)_val);
 
-	/++ Get value as signed integer number. +/
+	/++ Get value as a signed integer number. +/
 	long integer() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_SINT)) => _val.uni.i64;
 
-	/++ Get value as unsigned integer number. +/
+	/++ Get value as an unsigned integer number. +/
 	ulong uinteger() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_UINT)) => _val.uni.u64;
 
-	/++ Get value as floating point number. +/
+	/++ Get value as a floating point number. +/
 	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
 	/// ditto
 	alias float_ = floating;
 
-	/++ Get value as null-terminated C-style string. +/
+	/++ Get value as a null-terminated C-style string. +/
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
 
-	/++ Get value as D-style character slice (string). +/
+	/++ Get value as a D-style character slice (string). +/
 	const(char)[] str() @trusted => cstr[0..strlen(cstr)];
 	/// ditto
 	private alias string = str;
