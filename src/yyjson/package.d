@@ -341,6 +341,10 @@ nothrow:
 	bool is_array() => (_val.tag & (YYJSON_TYPE_ARR)) != 0;
 	alias isArray = is_array;
 
+	/++ Returns: `true` iff `this` is a flat array. +/
+	bool is_flat_array() @trusted => is_array && unsafe_yyjson_arr_is_flat(_val);
+	alias isFlatArray = is_flat_array;
+
 	/++ Returns: `true` iff `this` is an object. +/
 	bool is_object() => (_val.tag & (YYJSON_TYPE_OBJ)) != 0;
 	alias isObject = is_object;
@@ -634,6 +638,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
 	assert(root.isArray);
+	assert(root.isFlatArray);
 	assert(root.arrayLength == 3);
 	size_t ix = 0;
 	assert(root.arrayRange.length == 3);
@@ -877,6 +882,8 @@ const(yyjson_val) *yyjson_arr_get(const(yyjson_val) *arr, size_t idx);
 bool yyjson_arr_iter_init(const yyjson_val *arr, yyjson_arr_iter *iter);
 bool yyjson_arr_iter_has_next(yyjson_arr_iter *iter);
 yyjson_val *yyjson_arr_iter_next(yyjson_arr_iter *iter);
+// array predicate:
+bool unsafe_yyjson_arr_is_flat(const yyjson_val *val);
 
 // object:
 size_t yyjson_obj_size(const yyjson_val *obj);
