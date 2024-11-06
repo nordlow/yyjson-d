@@ -32,10 +32,10 @@ struct Result(T, E = void) {
 	~this() @trusted {
 		import core.internal.traits : hasElaborateDestructor;
 		if (isValue) {
-			static if (hasElaborateDestructor!T)
+			static if (!__traits(isPOD, T) && hasElaborateDestructor!T)
 				.destroy(_value);
 		} else {
-			static if (hasElaborateDestructor!E)
+			static if (!__traits(isPOD, E) && hasElaborateDestructor!E)
 				.destroy(_error);
 		}
 	}
@@ -71,12 +71,33 @@ struct Result(T, E = void) {
 			return this._value == that._value;
 		return this.isValue == that.isValue;
 	}
-	string toString() const scope pure @trusted {
-		import std.conv : to;
-		static if (hasError) {
-			return isValue ? _value.to!string : _error.to!string;
-		} else {
-			return isValue ? _value.to!string : "invalid";
+
+	string toString() const /+scope pure+/ nothrow {
+		if (isValue)
+			return toValueString;
+		static if (hasError)
+			return toErrorString;
+		else
+			return "invalid";
+	}
+
+	private string toValueString() const nothrow @trusted {
+		// TODO: remove when std.conv.to!string(_error) doens't throw for trivial types:
+		try {
+			import std.conv : to;
+			return _value.to!string;
+		} catch (Exception _)
+			return typeof(return).init;
+	}
+
+	static if (hasError) {
+		private string toErrorString() const nothrow @trusted {
+			// TODO: remove when std.conv.to!string(_error) doens't throw for trivial types:
+			try {
+				import std.conv : to;
+				return _error.to!string;
+			} catch (Exception _)
+				return typeof(return).init;
 		}
 	}
 pure nothrow @nogc:
@@ -103,7 +124,7 @@ private:
 }
 
 /// to string conversion
-@safe pure unittest {
+pure nothrow @safe version(nxt_test) unittest {
 	alias T = int;
 	alias R = Result!T;
 	const R r1;
@@ -119,18 +140,18 @@ private:
 }
 
 /// result of uncopyable type
-@safe pure nothrow @nogc unittest {
+pure nothrow @safe @nogc version(nxt_test) unittest {
 	static struct Uncopyable { this(this) @disable; int _x; }
 	alias T = Uncopyable;
 	alias R = Result!T;
+	const R r_ = R(T.init);
 	R r1;
 	assert(!r1);
-	assert(r1 == R.invalid);
-	assert(r1 != R(T.init));
+	assert(r1 != r_);
 	assert(!r1.isValue);
 	T t = T(42);
 	r1 = move(t);
-	assert(r1 != R(T.init));
+	assert(r1 != r_);
 	assert(*r1 == T(42));
 	R r2 = T(43);
 	assert(*r2 == T(43));
@@ -138,7 +159,7 @@ private:
 }
 
 /// result of pointer and error enum
-@safe pure nothrow unittest {
+pure nothrow @safe version(nxt_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
@@ -157,8 +178,20 @@ private:
 	assert(**r1 == V(42));
 }
 
+/// result of pointer and error enum toString
+pure nothrow @safe version(nxt_test) unittest {
+	alias V = ulong;
+	alias T = V*;
+	enum E { first, second }
+	alias R = Result!(T, E);
+	R r1;
+	assert(r1.toString == "first");
+	r1 = T.init;
+	assert(r1.toString == "null");
+}
+
 /// result of pointer and error enum
-@safe pure nothrow unittest {
+pure nothrow @safe version(nxt_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
@@ -169,7 +202,7 @@ private:
 }
 
 /// result of pointer and error enum
-@safe pure nothrow unittest {
+pure nothrow @safe @nogc version(nxt_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
