@@ -124,7 +124,7 @@ private:
 }
 
 /// to string conversion
-pure nothrow @safe version(nxt_test) unittest {
+pure nothrow @safe version(yyjson_test) unittest {
 	alias T = int;
 	alias R = Result!T;
 	const R r1;
@@ -140,7 +140,7 @@ pure nothrow @safe version(nxt_test) unittest {
 }
 
 /// result of uncopyable type
-pure nothrow @safe @nogc version(nxt_test) unittest {
+pure nothrow @safe @nogc version(yyjson_test) unittest {
 	static struct Uncopyable { this(this) @disable; int _x; }
 	alias T = Uncopyable;
 	alias R = Result!T;
@@ -159,7 +159,7 @@ pure nothrow @safe @nogc version(nxt_test) unittest {
 }
 
 /// result of pointer and error enum
-pure nothrow @safe version(nxt_test) unittest {
+pure nothrow @safe version(yyjson_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
@@ -179,7 +179,7 @@ pure nothrow @safe version(nxt_test) unittest {
 }
 
 /// result of pointer and error enum toString
-pure nothrow @safe version(nxt_test) unittest {
+pure nothrow @safe version(yyjson_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
@@ -191,7 +191,7 @@ pure nothrow @safe version(nxt_test) unittest {
 }
 
 /// result of pointer and error enum
-pure nothrow @safe version(nxt_test) unittest {
+pure nothrow @safe version(yyjson_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
@@ -202,7 +202,7 @@ pure nothrow @safe version(nxt_test) unittest {
 }
 
 /// result of pointer and error enum
-pure nothrow @safe @nogc version(nxt_test) unittest {
+pure nothrow @safe @nogc version(yyjson_test) unittest {
 	alias V = ulong;
 	alias T = V*;
 	enum E { first, second }
