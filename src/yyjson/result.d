@@ -1,6 +1,6 @@
 /++ Result type.
  +/
-module nxt.result;
+module yyjson.result;
 
 @safe:
 

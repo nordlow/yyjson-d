@@ -3,7 +3,7 @@
 module yyjson;
 
 import std.mmfile : MmFile;
-import nxt.result : Result;
+import yyjson.result : Result;
 
 @safe:
 
