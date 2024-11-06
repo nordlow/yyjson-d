@@ -135,7 +135,7 @@ pure nothrow @safe version(yyjson_test) unittest {
 	r3 = 42;
 	assert(*r3 == 42);
 	assert(r3 == 42);
-	T v42 = 42;
+	const T v42 = 42;
 	assert(r3 == v42);
 }
 
@@ -153,7 +153,7 @@ pure nothrow @safe @nogc version(yyjson_test) unittest {
 	r1 = move(t);
 	assert(r1 != r_);
 	assert(*r1 == T(42));
-	R r2 = T(43);
+	const R r2 = T(43);
 	assert(*r2 == T(43));
 	assert(r2.value == T(43));
 }
@@ -196,7 +196,7 @@ pure nothrow @safe version(yyjson_test) unittest {
 	alias T = V*;
 	enum E { first, second }
 	alias R = Result!(T, E);
-	R r2 = new V(43);
+	const R r2 = new V(43);
 	assert(**r2 == V(43));
 	assert(*r2.value == V(43));
 }
