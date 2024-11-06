@@ -120,6 +120,7 @@ private:
 
 /// result of uncopyable type
 @safe pure nothrow @nogc unittest {
+	static struct Uncopyable { this(this) @disable; int _x; }
 	alias T = Uncopyable;
 	alias R = Result!T;
 	R r1;
@@ -181,5 +182,4 @@ private:
 
 version (unittest) {
 	import core.lifetime : move;
-	private static struct Uncopyable { this(this) @disable; int _x; }
 }
