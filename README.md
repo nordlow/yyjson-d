@@ -5,7 +5,7 @@ with Phobos's `std.json`.
 
 Automatically provisions `libyyjson` locally via `provision.sh`.
 
-Tested solely on Ubuntu 22.04.
+Tested solely on Ubuntu 24.04.
 
 ## TODO
 - Provision and test on Windows.
