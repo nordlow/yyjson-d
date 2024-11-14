@@ -2,10 +2,6 @@
 dub.sdl.redub_cache_json
 docs.json
 docs/
-*.exe
-*.pdb
-*.o
-*.obj
 *.lst
 bin
 yyjson-build
