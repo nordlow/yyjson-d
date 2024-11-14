@@ -1,4 +1,5 @@
 .dub
+dub.sdl.redub_cache_json
 docs.json
 docs/
 *.exe
