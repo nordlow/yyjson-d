@@ -8,3 +8,4 @@ docs/
 *.obj
 *.lst
 bin
+yyjson-build
