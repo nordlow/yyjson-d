@@ -49,6 +49,12 @@ buildType "unittest-without-coverage" {
 	dflags "-Xcc=-fuse-ld=lld"  # use better linker
 }
 
+configuration "benchmark-release" {
+	versions "yyjson_benchmark"
+	buildOptions "releaseMode" "inline" "optimize"
+	dflags "-checkaction=context" "-allinst" "-unittest" "-mcpu=native"
+}
+
 buildType "benchmark-release" {
 	versions "yyjson_benchmark"
 	buildOptions "releaseMode" "inline" "optimize"
