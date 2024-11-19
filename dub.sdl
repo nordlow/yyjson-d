@@ -13,7 +13,7 @@ preBuildCommands "bash provision.sh"
 lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
 libs "yyjson"
 
-configuration "unittest" {
+configuration "unittest" { # `redub` doesn't support custom `buildType`
 	versions "yyjson_test"
 	dflags "-g" "-checkaction=context" "-allinst" "-unittest" "-cov" "-cov=ctfe"
 	dflags "-fsanitize=address" platform="posix-ldc"
@@ -31,7 +31,7 @@ buildType "unittest" {
 	dflags "-Xcc=-fuse-ld=lld"  # use better linker
 }
 
-configuration "unittest-without-coverage" {
+configuration "unittest-without-coverage" { # `redub` doesn't support custom `buildType`
 	versions "yyjson_test"
 	dflags "-g" "-checkaction=context" "-allinst" "-unittest"
 	dflags "-fsanitize=address" platform="posix-ldc"
