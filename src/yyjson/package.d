@@ -409,11 +409,10 @@ alias JSONOptions = Options; // `std.json` compliance
 /++ Parse JSON Document from `path`.
 	TODO: Add options for allocation mechanism and immutablity.
  +/
-Result!(Document!(Char, memoryMapped), ReadError) readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path, in Options options = Options.none) /+nothrow @nogc+/ @trusted /+@reads_from_file+/ {
+Result!(Document!(Char, memoryMapped), ReadError)
+readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path, in Options options = Options.none) /+nothrow @nogc+/ @trusted /+@reads_from_file+/ {
 	static if (memoryMapped) {
-		mmfile = new MmFile(path);
-		const data = cast(const(char)[])mmfile[];
-		return parseJSONDocumentMmap(data, options: options);
+		return parseJSONDocumentMmap(new MmFile(path), options: options);
 	} else {
 		/+ Uses `read` instead of `readText` as `yyjson` verifies Unicode.
 		   See_Also: `ALLOW_INVALID_UNICODE`. +/
@@ -484,7 +483,7 @@ version(yyjson_benchmark) {
 
 	private void benchmark(Char = const(char), bool memoryMapped = false)(const FilePath path, Options options = Options.init, bool printElements = false) {
 		auto sw = StopWatch(AutoStart.yes);
-		const docR = path.readJSONDocument!(Char, false)(options);
+		const docR = path.readJSONDocument!(Char, memoryMapped)(options);
 		if (printElements)
 			(*docR).root.convertTreeSitterMetaModelToDCode();
 		const dur = sw.peek;
