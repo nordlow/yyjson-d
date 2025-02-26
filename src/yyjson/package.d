@@ -529,7 +529,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 
 /// Test none.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	scope root = Value();
+	const scope root = Value();
 	assert(root.type == ValueType.NONE);
 	assert(root.type_std == JSONType.none);
 	assert(root.isNone);
@@ -550,7 +550,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert((*docR).data.length == s.length);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root.type == ValueType.NULL);
 	assert(root.type_std == JSONType.null_);
 	assert(root.isNull);
@@ -564,7 +564,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		scope root = (*docR).root;
+		const scope root = (*docR).root;
 		assert(root);
 		assert(root.boolean == e);
 		if (e)
@@ -582,7 +582,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		scope root = (*docR).root;
+		const scope root = (*docR).root;
 		assert(root.integer == e);
 	}
 }
@@ -595,7 +595,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 		assert(docR);
 		assert((*docR).byteCount == s.length);
 		assert((*docR).valueCount == 1);
-		scope root = (*docR).root;
+		const scope root = (*docR).root;
 		assert(root.uinteger == e);
 	}
 }
@@ -607,7 +607,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root.floating == 0.5);
 }
 
@@ -618,7 +618,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.STR);
 	assert(root.isString);
@@ -732,7 +732,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 14);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 	assert(root.isObject);
