@@ -706,7 +706,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 1);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.NUM);
 	// assert(root.floating == 1.0);
@@ -719,7 +719,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
-	scope root = (*docR).root;
+	const scope root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
