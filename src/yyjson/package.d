@@ -651,14 +651,14 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 
 /// Read object and iterate its range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	enum n = 2;
-	const string[n] keys = ["a", "b"];
-	const uint[n] vals = [1, 2];
-	const s = `{"a":1, "b":2}`;
+	enum n = 3;
+	const string[n] keys = ["a", "a", "b"]; // duplicate keys allowed
+	const uint[n] vals = [1, 1, 2];
+	const s = `{"a":1, "a":1, "b":2}`; // duplicate keys allowed
 	scope docR = s.parseJSONDocument();
 	assert(docR);
 	assert((*docR).byteCount == s.length);
-	assert((*docR).valueCount == 5);
+	assert((*docR).valueCount == 7);
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
