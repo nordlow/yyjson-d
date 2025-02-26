@@ -450,7 +450,7 @@ readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path
 	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE), printElements: true);
 }
 
-/++ Convert convert tree sitter meta model `mmd` to D code. +/
+/++ Convert tree sitter meta model `mmd` to D code. +/
 string convertTreeSitterMetaModelToDCode(const Value mmd) {
 	typeof(return) res;
 	foreach (const section; mmd.object) {
@@ -484,9 +484,9 @@ version(yyjson_benchmark) {
 	private void benchmark(Char = const(char), bool memoryMapped = false)(const FilePath path, Options options = Options.init, bool printElements = false) {
 		auto sw = StopWatch(AutoStart.yes);
 		const docR = path.readJSONDocument!(Char, memoryMapped)(options);
+		const dur = sw.peek;
 		if (printElements)
 			(*docR).root.convertTreeSitterMetaModelToDCode();
-		const dur = sw.peek;
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
 		import std.stdio : writeln;
 		const type = memoryMapped ? " memory mapped" : "";
