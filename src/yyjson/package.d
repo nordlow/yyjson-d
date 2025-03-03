@@ -108,7 +108,7 @@ enum JSONType : byte {
 	none, // Extended.
 }
 
-/++ "Immutable" JSON Value (Reference Pointer). +/
+/++ Constant JSON Value (Reference Pointer). +/
 struct Value {
 	import core.stdc.string : strlen;
 
