@@ -186,12 +186,6 @@ pure nothrow @property:
 	/++ Object value type. +/
 	alias Value = .Value;
 
-	/++ Object key-value (element) type. +/
-	struct ObjectKeyValue {
-		Key key; ///< Key part of object element.
-		Value value; ///< Value part of object element.
-	}
-
 	/++ Check if element with key `key` is stored/contained. +/
 	const(Value) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
@@ -206,6 +200,11 @@ pure nothrow @property:
 
 	/++ Get value as a {range|view} over object elements (key-values). +/
 	auto objectRange() const in(type == ValueType.OBJ) {
+		/++ Object key-value (element) type. +/
+		struct KeyValue {
+			Key key; ///< Key part of object element.
+			Value value; ///< Value part of object element.
+		}
 		static struct Result {
 		private:
 			yyjson_obj_iter _iter;
@@ -237,7 +236,7 @@ pure nothrow @property:
 			const(Value) frontValue() return scope @trusted in(!empty) {
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
-			const(ObjectKeyValue) front() return scope => typeof(return)(frontKey, frontValue);
+			const(KeyValue) front() return scope => typeof(return)(frontKey, frontValue);
 			/// Try to find object element with key `keyStr`.
 			const(Value) find(scope const(char)[] keyStr) return scope {
 				while (!empty)
