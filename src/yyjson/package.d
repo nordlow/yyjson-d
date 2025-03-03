@@ -238,6 +238,12 @@ pure nothrow @property:
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
 			const(ObjectKeyValue) front() return scope => typeof(return)(frontKey, frontValue);
+			const(Value) find(scope const(char)[] keyStr) {
+				while (!empty)
+					if (frontKey.isString && frontKey.str == keyStr)
+						return frontValue;
+				return typeof(return).init;
+			}
 		}
 		return Result(_val);
  	}
