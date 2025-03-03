@@ -239,7 +239,7 @@ pure nothrow @property:
 			}
 			const(ObjectKeyValue) front() return scope => typeof(return)(frontKey, frontValue);
 			/// Try to find object element with key `keyStr`.
-			const(Value) find(scope const(char)[] keyStr) {
+			const(Value) find(scope const(char)[] keyStr) return scope {
 				while (!empty)
 					if (frontKey.isString && frontKey.str == keyStr)
 						return frontValue;
