@@ -230,12 +230,6 @@ pure nothrow @property:
 				nextFront();
 				_length -= 1;
 			}
-			// bool findKey(in char[] key) {
-			// 	while (!empty) {
-			// 		if () {}
-			// 	}
-			// }
-			// alias tryGetKey = findKey;
 		const @property:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _key is null;
