@@ -229,7 +229,17 @@ pure nothrow @property:
 				nextFront();
 				_length -= 1;
 			}
-		const @property:
+		@property:
+			/// Try to find object element with key `keyStr`.
+			const(Value) find(scope const(char)[] keyStr) return scope {
+				while (!empty) {
+					if (frontKey.isString && frontKey.str == keyStr)
+						return frontValue;
+					popFront();
+				}
+				return typeof(return).init;
+			}
+		const:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _key is null;
 			const(Key) frontKey() return scope in(!empty) => typeof(return)(_key);
@@ -237,13 +247,6 @@ pure nothrow @property:
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
 			const(KeyValue) front() return scope => typeof(return)(frontKey, frontValue);
-			/// Try to find object element with key `keyStr`.
-			const(Value) find(scope const(char)[] keyStr) return scope {
-				while (!empty)
-					if (frontKey.isString && frontKey.str == keyStr)
-						return frontValue;
-				return typeof(return).init;
-			}
 		}
 		return Result(_val);
  	}
@@ -665,6 +668,9 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(root.type_std == JSONType.object);
 	assert(root.objectLength == n);
 	size_t ix = 0;
+	assert(root.objectRange.find("a"));
+	assert(root.objectRange.find("b"));
+	assert(!root.objectRange.find("c"));
 	assert(root.objectRange.length == n);
 	foreach (const ref kv; root.objectRange()) {
 		assert(kv.key.type == ValueType.STR);
