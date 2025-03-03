@@ -257,6 +257,7 @@ pure nothrow @property:
 		}
 		return Result(_val);
  	}
+	alias orderedObject = objectRange; // `std.json` compliance
 	alias object = objectRange; // `std.traits` compliance
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
