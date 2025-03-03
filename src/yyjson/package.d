@@ -212,10 +212,10 @@ pure nothrow @property:
 			size_t _length;
 		/+pragma(inline, true):+/
 		scope pure @safe:
-			const(Value) opIndex(scope const(char)[] keyStr) return scope {
-				auto hit = find(keyStr);
+			const(Value) opIndex(scope const(char)[] key) return scope {
+				auto hit = find(key);
 				if (!hit)
-					throw new Exception(("Key " ~ keyStr ~ " not found").idup);
+					throw new Exception(("Key " ~ key ~ " not found").idup);
 				return hit;
 			}
 		nothrow @nogc:
@@ -237,10 +237,10 @@ pure nothrow @property:
 				_length -= 1;
 			}
 		@property:
-			/// Try to find object element with key `keyStr`.
-			const(Value) find(scope const(char)[] keyStr) return scope {
+			/// Try to find object element with key `key`.
+			const(Value) find(scope const(char)[] key) return scope {
 				while (!empty) {
-					if (frontKey.isString && frontKey.str == keyStr)
+					if (frontKey.isString && frontKey.str == key)
 						return frontValue;
 					popFront();
 				}
