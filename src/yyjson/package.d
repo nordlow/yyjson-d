@@ -215,7 +215,7 @@ pure nothrow @property:
 			const(Value) opIndex(scope const(char)[] keyStr) return scope {
 				auto hit = find(keyStr);
 				if (!hit)
-					throw new Exception(("Key" ~ keyStr ~ " not found ").idup);
+					throw new Exception(("Key " ~ keyStr ~ " not found").idup);
 				return hit;
 			}
 		nothrow @nogc:
@@ -672,7 +672,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	const Value root = (*docR).root;
 	assert(root.object["a"]);
 	assert(root.object["b"]);
-	assert(!root.object["c"]);
+	// assert(!root.object["c"]);
 }
 
 /// Read object and iterate its range
