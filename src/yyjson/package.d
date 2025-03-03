@@ -672,7 +672,12 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	const Value root = (*docR).root;
 	assert(root.object["a"]);
 	assert(root.object["b"]);
-	// assert(!root.object["c"]);
+	bool thrown = false;
+	try {
+		auto _ = root.object["c"];
+	} catch (Exception _)
+		thrown = true;
+	assert(thrown);
 }
 
 /// Read object and iterate its range
