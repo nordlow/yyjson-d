@@ -792,7 +792,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(root["x"].isNone);
 }
 
-/// Read array with slashes comment to verify that slashes are not escaped by default opposite to D's `std.json`.
+/// Read string with slash to verify that slashes are not escaped by default opposite to D's `std.json`.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	const s = `"/"`;
 	scope docR = s.parseJSONDocument();
