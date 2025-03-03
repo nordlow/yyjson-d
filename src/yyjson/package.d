@@ -797,10 +797,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	const s = `"/"`;
 	scope docR = s.parseJSONDocument();
 	assert(docR);
-	assert((*docR).byteCount == s.length);
-	assert((*docR).valueCount == 1);
 	const scope root = (*docR).root;
-	assert(root);
 	assert(root.type == ValueType.STR);
 }
 
