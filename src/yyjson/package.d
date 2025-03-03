@@ -512,10 +512,13 @@ version(yyjson_benchmark) {
 	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 }
 
+alias JSONDocument = Document!(const(char), false);
+alias JSONDocumentMMap = Document!(const(char), true);
+
 /++ Parse JSON Document from `data`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document!(Char, false), ReadError) parseJSONDocument(Char = const(char))(return scope const(char)[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
+Result!(Document!(const(char), false), ReadError) parseJSONDocument(Char = const(char))(return scope const(char)[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
 	ReadError err;
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(Char, false)(doc, data)) : typeof(return)(err));
@@ -524,7 +527,7 @@ Result!(Document!(Char, false), ReadError) parseJSONDocument(Char = const(char))
 /++ Parse JSON Document from `mmfile`.
  +  See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
-Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(char))(return scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
+Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(return scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
 	ReadError err;
 	const data = (cast(const(char)[])mmfile[]);
     auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
