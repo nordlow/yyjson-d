@@ -192,7 +192,7 @@ pure nothrow @property:
 	}
 
 	/++ Get element value with key `key`. +/
-	const(Value) opIndex(in char[] key) const return scope @trusted {
+	const(Value) opIndex(scope const(char)[] key) const return scope @trusted {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
