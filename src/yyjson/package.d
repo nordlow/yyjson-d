@@ -659,7 +659,7 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 	assert(ix == 3);
 }
 
-/// Read object and iterate its range
+/// Read object and index using string key
 @safe pure version(yyjson_test) unittest {
 	enum n = 3;
 	const string[n] keys = ["a", "a", "b"]; // duplicate keys allowed
