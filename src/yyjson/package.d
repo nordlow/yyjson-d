@@ -662,16 +662,22 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 /// Read object and index using string key
 @safe pure version(yyjson_test) unittest {
 	enum n = 3;
+
 	const string[n] keys = ["a", "a", "b"]; // duplicate keys allowed
 	const uint[n] vals = [1, 1, 2];
+
 	const s = `{"a":1, "a":1, "b":2}`; // duplicate keys allowed
 	scope docR = s.parseJSONDocument();
+
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 7);
+
 	const Value root = (*docR).root;
+
 	assert(root.object["a"]);
 	assert(root.object["b"]);
+
 	bool thrown = false;
 	try {
 		auto _ = root.object["c"];
@@ -683,23 +689,29 @@ Result!(Document!(Char, true), ReadError) parseJSONDocumentMmap(Char = const(cha
 /// Read object and iterate its range
 @safe pure nothrow @nogc version(yyjson_test) unittest {
 	enum n = 3;
+
 	const string[n] keys = ["a", "a", "b"]; // duplicate keys allowed
 	const uint[n] vals = [1, 1, 2];
+
 	const s = `{"a":1, "a":1, "b":2}`; // duplicate keys allowed
 	scope docR = s.parseJSONDocument();
+
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 7);
+
 	const Value root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 	assert(root.type_std == JSONType.object);
 	assert(root.objectLength == n);
-	size_t ix = 0;
+
 	assert(root.objectRange.find("a"));
 	assert(root.objectRange.find("b"));
 	assert(!root.objectRange.find("c"));
 	assert(root.objectRange.length == n);
+
+	size_t ix = 0;
 	foreach (const ref kv; root.objectRange()) {
 		assert(kv.key.type == ValueType.STR);
 		assert(kv.key.type_std == JSONType.string);
