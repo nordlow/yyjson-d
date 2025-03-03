@@ -238,6 +238,7 @@ pure nothrow @property:
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
 			const(ObjectKeyValue) front() return scope => typeof(return)(frontKey, frontValue);
+			/// Try to find object element with key `keyStr`.
 			const(Value) find(scope const(char)[] keyStr) {
 				while (!empty)
 					if (frontKey.isString && frontKey.str == keyStr)
