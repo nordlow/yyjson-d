@@ -192,7 +192,7 @@ pure nothrow @property:
 	}
 
 	/++ Get element value with key `key`. +/
-	const(Value) opIndex(scope const(char)[] key) const return scope @trusted {
+	const(Value) opIndex(in char[] key) const return scope @trusted {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
@@ -212,7 +212,7 @@ pure nothrow @property:
 			size_t _length;
 		/+pragma(inline, true):+/
 		scope pure @safe:
-			const(Value) opIndex(scope const(char)[] key) return scope {
+			const(Value) opIndex(in char[] key) return scope {
 				auto hit = find(key);
 				if (!hit)
 					throw new Exception(("Key " ~ key ~ " not found").idup);
@@ -238,7 +238,7 @@ pure nothrow @property:
 			}
 		@property:
 			/// Try to find object element with key `key`.
-			const(Value) find(scope const(char)[] key) return scope {
+			const(Value) find(in char[] key) return scope {
 				while (!empty) {
 					if (frontKey.isString && frontKey.str == key)
 						return frontValue;
