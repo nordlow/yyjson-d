@@ -210,8 +210,15 @@ pure nothrow @property:
 			yyjson_obj_iter _iter;
 			const(yyjson_val)* _key;
 			size_t _length;
-		scope pure nothrow @safe @nogc:
 		/+pragma(inline, true):+/
+		scope pure @safe:
+			const(Value) opIndex(scope const(char)[] keyStr) return scope {
+				auto hit = find(keyStr);
+				if (!hit)
+					throw new Exception(("Key" ~ keyStr ~ " not found ").idup);
+				return hit;
+			}
+		nothrow @nogc:
 			@disable this(this);
 			this(const(yyjson_val)* obj) @trusted {
 				_length = yyjson_obj_size(obj);
