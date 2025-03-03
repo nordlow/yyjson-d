@@ -212,7 +212,7 @@ pure nothrow @property:
 			size_t _length;
 		/+pragma(inline, true):+/
 		scope pure @safe:
-			const(Value) opIndex(in char[] key) @property return scope {
+			public const(Value) opIndex(in char[] key) @property return scope {
 				auto hit = find(key);
 				if (!hit)
 					throw new Exception(("Key " ~ key ~ " not found").idup);
