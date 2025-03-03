@@ -401,6 +401,7 @@ struct ReadError {
 
 struct Options {
 	enum none = typeof(this).init;
+	enum allowAll = ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE | ReadFlag.ALLOW_COMMENTS | ReadFlag.ALLOW_INF_AND_NAN;
 	private yyjson_read_flag _flag;
 	bool mutable;
 }
