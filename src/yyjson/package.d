@@ -90,6 +90,7 @@ enum ValueType : yyjson_type {
 	/** Object type, no subtype. */
 	OBJ = YYJSON_TYPE_OBJ,
 }
+///
 alias JSONValueType = ValueType;
 
 /++ Type of a JSON value being a superset of `std.json.ValueType`.
