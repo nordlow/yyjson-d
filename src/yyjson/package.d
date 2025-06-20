@@ -346,12 +346,16 @@ nothrow:
 	bool is_true() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
 	alias isTrue = is_true;
 
+	/++ Returns: `true` iff `this` is a boolean. +/
+	bool is_boolean() => type == ValueType.BOOL;
+	alias isBoolean = is_boolean;
+
 	/++ Returns: `true` iff `this` is a string. +/
-	bool is_string() => (_val.tag & (YYJSON_TYPE_STR)) != 0;
+	bool is_string() => type == ValueType.STR;
 	alias isString = is_string;
 
 	/++ Returns: `true` iff `this` is an array. +/
-	bool is_array() => (_val.tag & (YYJSON_TYPE_ARR)) != 0;
+	bool is_array() => type == ValueType.ARR;
 	alias isArray = is_array;
 
 	/++ Returns: `true` iff `this` is a flat array. +/
@@ -359,7 +363,7 @@ nothrow:
 	alias isFlatArray = is_flat_array;
 
 	/++ Returns: `true` iff `this` is an object. +/
-	bool is_object() => (_val.tag & (YYJSON_TYPE_OBJ)) != 0;
+	bool is_object() => type == ValueType.OBJ;
 	alias isObject = is_object;
 
 }
