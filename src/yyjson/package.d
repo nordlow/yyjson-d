@@ -430,7 +430,7 @@ alias JSONOptions = Options; // `std.json` compliance
 Result!(Document!(Char, memoryMapped), ReadError)
 readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path, in Options options = Options.none) /+nothrow @nogc+/ @trusted /+@reads_from_file+/ {
 	static if (memoryMapped) {
-		return parseJSONDocumentMmap(new MmFile(path), options: options);
+		return parseJSONDocumentMmap(new MmFile(path.str), options: options);
 	} else {
 		/+ Uses `read` instead of `readText` as `yyjson` verifies Unicode.
 		   See_Also: `ALLOW_INVALID_UNICODE`. +/
