@@ -457,7 +457,7 @@ readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path
 @safe version(yyjson_benchmark) unittest {
 	import std.path : buildPath;
 	import std.file : exists;
-	const fn = FilePath("metaModel.json");
+	const fn = FilePath("test-data/metaModel.json");
 	const path = FilePath(homeDir.str.buildPath(fn.str));
 	if (!path.str.exists)
 		return;
