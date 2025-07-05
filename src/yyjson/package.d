@@ -468,34 +468,6 @@ readJSONDocument(Char = const(char), bool memoryMapped = false)(in FilePath path
 	benchmark!(Char, true)(path, Options(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE), printElements: true);
 }
 
-/++ Convert tree sitter meta model `mmd` to D code. +/
-string convertTreeSitterMetaModelToDCode(const Value mmd) {
-	typeof(return) res;
-	foreach (const section; mmd.object) {
-		import std.stdio;
-		writeln(section.key.string, " => ", section.value.type);
-		switch (section.key.string) {
-		case "metadata":
-			break;
-		case "requests":
-		case "notifications":
-		case "structures":
-		case "enumerations":
-		case "typeAliases":
-			foreach (const i; section.value.array) {
-				writeln("- ", i, " of type ", i.type);
-				foreach (const p1; i.objectRange) { // property
-					writeln("  - ", p1.key.string, " => ", p1.value, " of type ", p1.value.type);
-				}
-			}
-			break;
-		default:
-			break;
-		}
-	}
-	return res;
-}
-
 version(yyjson_benchmark) {
 	import std.datetime.stopwatch : StopWatch, AutoStart, Duration;
 
@@ -504,7 +476,7 @@ version(yyjson_benchmark) {
 		const docR = path.readJSONDocument!(Char, memoryMapped)(options);
 		const dur = sw.peek;
 		if (printElements)
-			(*docR).root.convertTreeSitterMetaModelToDCode();
+			(*docR).root.convertLSPMetaModelToDCode();
 		const mbps = (*docR)._store.length.bytesPer(dur) * 1e-6;
 		import std.stdio : writeln;
 		const type = memoryMapped ? " memory mapped" : "";
@@ -516,6 +488,34 @@ version(yyjson_benchmark) {
 	}
 
 	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
+
+	/++ Convert LSP meta model `mmd` to D code. +/
+	string convertLSPMetaModelToDCode(const Value mmd) {
+		typeof(return) res;
+		foreach (const section; mmd.object) {
+			import std.stdio;
+			writeln(section.key.string, " => ", section.value.type);
+			switch (section.key.string) {
+			case "metadata":
+				break;
+			case "requests":
+			case "notifications":
+			case "structures":
+			case "enumerations":
+			case "typeAliases":
+				foreach (const i; section.value.array) {
+					writeln("- ", i, " of type ", i.type);
+					foreach (const p1; i.objectRange) { // property
+						writeln("  - ", p1.key.string, " => ", p1.value, " of type ", p1.value.type);
+					}
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		return res;
+	}
 }
 
 alias JSONDocument = Document!(const(char), false);
