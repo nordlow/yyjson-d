@@ -266,12 +266,6 @@ pure nothrow @property:
 @property const scope nothrow:
 /+pragma(inline, true):+/
 
-	/++ Get length of `this` as an array. +/
-	private size_t arrayLength() in(type == ValueType.ARR) => yyjson_arr_size(_val);
-
-	/++ Get length of `this` as an object. +/
-	private size_t objectLength() in(type == ValueType.OBJ) => yyjson_obj_size(_val);
-
 	/++ Value getters. TODO: These should return result types or throw +/
 
 	/++ Get value as a boolean. +/
@@ -659,7 +653,6 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert(root.type_std == JSONType.array);
 	assert(root.isArray);
 	assert(root.isFlatArray);
-	assert(root.arrayLength == 3);
 	size_t ix = 0;
 	assert(root.arrayRange.length == 3);
 	foreach (const ref e; root.arrayRange()) {
@@ -714,7 +707,6 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 	assert(root.type_std == JSONType.object);
-	assert(root.objectLength == n);
 
 	assert(root.objectRange.find("a"));
 	assert(root.objectRange.find("b"));
@@ -744,7 +736,6 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
-	assert(root.arrayLength == 3);
 	{
 		size_t ix = 0;
 		foreach (const ref e; root.arraySlice()) {
