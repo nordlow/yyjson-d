@@ -838,6 +838,7 @@ struct DirPath {
 	Path path;
 	alias path this;
 }
+
 /++ Get path to home directory.
  +	See_Also: `tempDir`
  +  See: https://forum.dlang.org/post/gg9kds$1at0$1@digitalmars.com
