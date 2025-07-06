@@ -487,7 +487,7 @@ version(yyjson_benchmark) {
 		}
 	}
 
-	private double bytesPer(T)(in T num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
+	private double bytesPer(in size_t num, in Duration dur) => (cast(typeof(return))num) / dur.total!("nsecs")() * 1e9;
 
 	/++ Convert LSP meta model `mmd` to D code. +/
 	string convertLSPMetaModelToDCode(const Value mmd) {
