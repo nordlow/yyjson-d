@@ -260,7 +260,6 @@ pure nothrow @property:
 		return Result(_val);
  	}
 	alias orderedObject = objectRange; // `std.json` compliance
-	alias object = objectRange; // `std.traits` compliance
 	alias byKeyValue = objectRange; // `std.traits` compliance
 
 @property const scope nothrow:
@@ -492,7 +491,7 @@ version(yyjson_benchmark) {
 	/++ Convert LSP meta model `mmd` to D code. +/
 	string convertLSPMetaModelToDCode(const Value mmd) {
 		typeof(return) res;
-		foreach (const section; mmd.object) {
+		foreach (const section; mmd.objectRange) {
 			import std.stdio;
 			writeln(section.key.string, " => ", section.value.type);
 			switch (section.key.string) {
@@ -685,12 +684,12 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 
 	const Value root = (*docR).root;
 
-	assert(root.object["a"]);
-	assert(root.object["b"]);
+	assert(root.objectRange["a"]);
+	assert(root.objectRange["b"]);
 
 	bool thrown = false;
 	try {
-		auto _ = root.object["c"];
+		auto _ = root.objectRange["c"];
 	} catch (Exception _)
 		thrown = true;
 	assert(thrown);
