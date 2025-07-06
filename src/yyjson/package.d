@@ -883,7 +883,6 @@ debug import std.stdio : writeln;
 	}();
 }
 
-version(none)
 @safe version(yyjson_test) unittest {
 	const root = homeDir.str.buildPath(".dub/packages.all");
 	foreach (ref dent; dirEntries(root, SpanMode.depth)) {
@@ -899,9 +898,9 @@ version(none)
 				debug const dur = sw.peek;
 				const mbps = src.length.bytesPer(dur) * 1e-6;
 				if (doc) {
- 					// debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+ 					dbg(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 				} else {
-					debug writeln(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
+					dbg(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 				}
 			}();
 	}
