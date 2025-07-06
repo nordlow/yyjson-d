@@ -325,40 +325,31 @@ nothrow:
 	/++ Type predicates: +/
 
 	/++ Returns: `true` iff `this` has value `none` (being uninitialized). +/
-	bool is_none() => _val is null;
-	alias isNone = is_none;
+	bool isNone() => _val is null;
 
 	/++ Returns: `true` iff `this` has value `null`. +/
-	bool is_null() => (_val.tag == (YYJSON_TYPE_NULL)) != 0;
-	alias isNull = is_null;
+	bool isNull() => (_val.tag == (YYJSON_TYPE_NULL)) != 0;
 
 	/++ Returns: `true` iff `this` has value `false`. +/
-	bool is_false() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
-	alias isFalse = is_false;
+	bool isFalse() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_FALSE));
 
 	/++ Returns: `true` iff `this` has value `true`. +/
-	bool is_true() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
-	alias isTrue = is_true;
+	bool isTrue() => (_val.tag == (YYJSON_TYPE_BOOL | YYJSON_SUBTYPE_TRUE));
 
 	/++ Returns: `true` iff `this` is a boolean. +/
-	bool is_boolean() => type == ValueType.BOOL;
-	alias isBoolean = is_boolean;
+	bool isBoolean() => type == ValueType.BOOL;
 
 	/++ Returns: `true` iff `this` is a string. +/
-	bool is_string() => type == ValueType.STR;
-	alias isString = is_string;
+	bool isString() => type == ValueType.STR;
 
 	/++ Returns: `true` iff `this` is an array. +/
-	bool is_array() => type == ValueType.ARR;
-	alias isArray = is_array;
+	bool isArray() => type == ValueType.ARR;
 
 	/++ Returns: `true` iff `this` is a flat array. +/
-	bool is_flat_array() @trusted => is_array && unsafe_yyjson_arr_is_flat(_val);
-	alias isFlatArray = is_flat_array;
+	bool isFlatArray() @trusted => isArray && unsafe_yyjson_arr_is_flat(_val);
 
 	/++ Returns: `true` iff `this` is an object. +/
-	bool is_object() => type == ValueType.OBJ;
-	alias isObject = is_object;
+	bool isObject() => type == ValueType.OBJ;
 
 }
 alias JSONValue = Value; // `std.json` compliance
@@ -580,7 +571,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 		assert((*docR).valueCount == 1);
 		const scope root = (*docR).root;
 		assert(root);
-		assert(root.is_boolean);
+		assert(root.isBoolean);
 		assert(root.boolean == e);
 		if (e)
 			assert(root.isTrue);
