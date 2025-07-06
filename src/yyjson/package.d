@@ -661,11 +661,6 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 
 /// Read object and index using string key
 @safe pure version(yyjson_test) unittest {
-	enum n = 3;
-
-	const string[n] keys = ["a", "a", "b"]; // duplicate keys allowed
-	const uint[n] vals = [1, 1, 2];
-
 	const s = `{"a":1, "a":1, "b":2}`; // duplicate keys allowed
 	scope docR = s.parseJSONDocument();
 
