@@ -581,6 +581,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 		const scope root = (*docR).root;
 		assert(root);
 		assert(root.boolean == e);
+		assert(root.is_boolean);
 		if (e)
 			assert(root.isTrue);
 		else
