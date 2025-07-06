@@ -14,7 +14,8 @@ import yyjson.result : Result;
  +
  +  See_Also: https://en.wikipedia.org/wiki/Mmap
  +/
-struct Document(Char = const(char), bool memoryMapped = false) {
+struct Document(Char = const(char), bool memoryMapped = false)
+if (is(immutable(Char) == immutable(char))) {
 	@disable this(this);
 
 	static if (memoryMapped) {
@@ -50,7 +51,7 @@ pure nothrow @nogc:
 	bool opEquals(in typeof(this) rhs) const scope => _store == rhs._store; // prevent complation error with Object.opEquals for `_mmf`
 
 	/++ Returns: Root value or `null` if `_doc` is `null`. +/
-	const(Value) root() const scope => typeof(return)(_doc ? _doc.root : null);
+	const(Value!(Char)) root() const scope => typeof(return)(_doc ? _doc.root : null);
 
 	/++ Returns: Total number of bytes read (nonzero). +/
 	size_t byteCount() const scope => _doc.dat_read;
@@ -111,7 +112,8 @@ enum JSONType : byte {
 }
 
 /++ Constant JSON Value (Reference Pointer). +/
-struct Value {
+struct Value(Char)
+if (is(immutable Char == immutable char)) {
 	import core.stdc.string : strlen;
 
 	private yyjson_val* _val;
@@ -122,12 +124,12 @@ pure nothrow @property:
 	}
 
 	/// For `std.json` compliance. Allocates with the GC!
-	const(Value)[] arraySlice() const /+return scope+/ in(type == ValueType.ARR) {
+	const(Value!(Char))[] arraySlice() const /+return scope+/ in(type == ValueType.ARR) {
 		const length = yyjson_arr_size(_val);
 		typeof(return) res;
 		res.reserve(length);
 		foreach (const idx; 0 .. length)
-			res ~= const(Value)(yyjson_arr_get(_val, idx));
+			res ~= const(Value!(Char))(yyjson_arr_get(_val, idx));
 		return res;
 	}
 
@@ -181,7 +183,7 @@ pure nothrow @property:
 			// }
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _val is null;
-			const(Value) front() return scope in(!empty) => typeof(return)(_val);
+			const(Value!(Char)) front() return scope in(!empty) => typeof(return)(_val);
 		}
 		return Result(_val);
  	}
@@ -194,12 +196,12 @@ pure nothrow @property:
 	alias Value = .Value;
 
 	/++ Check if element with key `key` is stored/contained. +/
-	const(Value) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
+	const(Value!(Char)) opBinaryRight(.string op)(in char[] key) const return scope @trusted if (op == "in") {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
 	/++ Get element value with key `key`. +/
-	const(Value) opIndex(in char[] key) const return scope @trusted {
+	const(Value!(Char)) opIndex(in char[] key) const return scope @trusted {
 		return typeof(return)(yyjson_obj_getn(cast(yyjson_val*)_val, key.ptr, key.length));
 	}
 
@@ -209,8 +211,8 @@ pure nothrow @property:
 	auto objectRange() const in(type == ValueType.OBJ) {
 		/++ Object key-value (element) type. +/
 		struct KeyValue {
-			Key key; ///< Key part of object element.
-			Value value; ///< Value part of object element.
+			Key!(Char) key; ///< Key part of object element.
+			Value!(Char) value; ///< Value part of object element.
 		}
 		static struct Result {
 		private:
@@ -219,7 +221,7 @@ pure nothrow @property:
 			size_t _length;
 		/+pragma(inline, true):+/
 		scope pure @safe:
-			public const(Value) opIndex(in char[] key) @property return scope {
+			public const(Value!(Char)) opIndex(in char[] key) @property return scope {
 				auto hit = find(key);
 				if (!hit)
 					throw new Exception(("Key " ~ key ~ " not found").idup);
@@ -245,7 +247,7 @@ pure nothrow @property:
 			}
 		@property:
 			/// Try to find object element with key `key`.
-			const(Value) find(in char[] key) return scope {
+			const(Value!(Char)) find(in char[] key) return scope {
 				while (!empty) {
 					if (frontKey.isString && frontKey.str == key)
 						return frontValue;
@@ -256,8 +258,8 @@ pure nothrow @property:
 		const:
 			size_t length() => _length; // for the sake of `std.traits.hasLength`
 			bool empty() => _key is null;
-			const(Key) frontKey() return scope in(!empty) => typeof(return)(_key);
-			const(Value) frontValue() return scope @trusted in(!empty) {
+			const(Key!(Char)) frontKey() return scope in(!empty) => typeof(return)(_key);
+			const(Value!(Char)) frontValue() return scope @trusted in(!empty) {
 				return typeof(return)(yyjson_obj_iter_get_val(cast(yyjson_val*)_key));
 			}
 			const(KeyValue) front() return scope => typeof(return)(frontKey, frontValue);
@@ -539,7 +541,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 
 /// Test none.
 @safe pure nothrow @nogc version(yyjson_test) unittest {
-	const scope root = Value();
+	const scope root = Value!(immutable(char))();
 	assert(root.type == ValueType.NONE);
 	assert(root.type_std == JSONType.none);
 	assert(root.isNone);
@@ -644,7 +646,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
-	const Value root = (*docR).root;
+	const root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
@@ -668,7 +670,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 7);
 
-	const Value root = (*docR).root;
+	const root = (*docR).root;
 
 	assert(root.objectRange["a"]);
 	assert(root.objectRange["b"]);
@@ -695,7 +697,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 7);
 
-	const Value root = (*docR).root;
+	const root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.OBJ);
 	assert(root.type_std == JSONType.object);
@@ -724,7 +726,7 @@ Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(r
 	assert(docR);
 	assert((*docR).byteCount == s.length);
 	assert((*docR).valueCount == 4);
-	const Value root = (*docR).root;
+	const root = (*docR).root;
 	assert(root);
 	assert(root.type == ValueType.ARR);
 	assert(root.type_std == JSONType.array);
