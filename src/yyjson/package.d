@@ -131,9 +131,14 @@ pure nothrow @property:
 		return res;
 	}
 
-@nogc:
-
 	/++ TODO: Get value as an array. +/
+	version(none)
+	auto array() const in(type == ValueType.ARR) {
+		import std.array : array;
+		return arrayRange.array;
+	}
+
+@nogc:
 
 	/++ Get value as a {range|view} over array elements. +/
 	auto arrayRange() const in(type == ValueType.ARR) {
