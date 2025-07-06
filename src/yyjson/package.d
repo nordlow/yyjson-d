@@ -152,7 +152,7 @@ pure nothrow @property:
 			@disable this(this);
 			this(const(yyjson_val)* arr) @trusted {
 				_length = yyjson_arr_size(arr);
-				yyjson_arr_iter_init(cast()arr, &_iter);
+				const _ = yyjson_arr_iter_init(cast()arr, &_iter);
 				nextFront();
 			}
 			void nextFront() @trusted {
@@ -229,7 +229,7 @@ pure nothrow @property:
 			@disable this(this);
 			this(const(yyjson_val)* obj) @trusted {
 				_length = yyjson_obj_size(obj);
-				yyjson_obj_iter_init(cast()obj, &_iter);
+				const _ = yyjson_obj_iter_init(cast()obj, &_iter);
 				nextFront();
 			}
 			void nextFront() @trusted {
