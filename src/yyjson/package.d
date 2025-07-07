@@ -166,7 +166,7 @@ pure nothrow @property:
 			size_t _length;
 		scope pure nothrow @safe @nogc:
 		/+pragma(inline, true):+/
-			@disable this(this);
+			// @disable this(this);
 			this(const(yyjson_val)* arr) @trusted {
 				_length = yyjson_arr_size(arr);
 				const _ = yyjson_arr_iter_init(cast()arr, &_iter);
@@ -243,7 +243,7 @@ pure nothrow @property:
 				return hit;
 			}
 		nothrow @nogc:
-			@disable this(this);
+			// @disable this(this);
 			this(const(yyjson_val)* obj) @trusted {
 				_length = yyjson_obj_size(obj);
 				const _ = yyjson_obj_iter_init(cast()obj, &_iter);
@@ -504,8 +504,7 @@ if (isOutputRange!(Out,char))
                 putCharAndEOL('{');
                 bool first = true;
 
-				import core.lifetime : move;
-                foreach (const ref pair; move(obj)) {
+                foreach (const ref pair; obj) {
 					if (!first)
 						putCharAndEOL(',');
 					first = false;
