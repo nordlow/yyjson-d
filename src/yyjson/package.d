@@ -524,6 +524,7 @@ if (isOutputRange!(Out,char))
 			break;
 
         case JSONType.array:
+
             auto obj = value.arrayRange;
             if (!obj.length) {
                 json.put("[]");
