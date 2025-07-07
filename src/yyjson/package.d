@@ -607,7 +607,7 @@ if (isOutputRange!(Out,char))
     toValueImpl(root, 0);
 }
 
- // https://issues.dlang.org/show_bug.cgi?id=12897
+// https://issues.dlang.org/show_bug.cgi?id=12897
 @safe unittest
 {
 	const doc0 = `"test测试"`.parseJSONDocument();
