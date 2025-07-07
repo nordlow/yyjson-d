@@ -356,8 +356,12 @@ nothrow:
 	/++ Returns: `true` iff `this` is an object. +/
 	bool isObject() => type == ValueType.OBJ;
 
+    void toString(Out)(Out sink, in Options options = Options.none) const {
+        toJSON(sink, this, false, options);
+    }
 }
-alias JSONValue = Value; // `std.json` compliance
+/// ditto
+alias JSONValue = Value!(immutable(char)); // `std.json` compliance
 
 /++ Read flag.
  +  See: `yyjson_read_flag` in yyjson.h.
