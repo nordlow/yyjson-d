@@ -7,7 +7,7 @@ import yyjson.result : Result;
 
 @safe:
 
-/++ "Immutable" JSON Document.
+/++ JSON Document.
  +
  +  TODO: Turn into a result type being either a non-null pointer or an error type.
  +  Descriminator can be the least significant bit.
@@ -15,7 +15,7 @@ import yyjson.result : Result;
  +  See_Also: https://en.wikipedia.org/wiki/Mmap
  +/
 struct Document(Char = const(char), bool memoryMapped = false)
-if (is(immutable(Char) == immutable(char))) {
+if (is(Char == const char) || is(Char == immutable char)) {
 	@disable this(this);
 
 	static if (memoryMapped) {
@@ -111,9 +111,9 @@ enum JSONType : byte {
 	none, // Extended.
 }
 
-/++ Constant JSON Value (Reference Pointer). +/
+/++ JSON Value (Reference Pointer). +/
 struct Value(Char)
-if (is(immutable Char == immutable char)) {
+if (is(Char == const char) || is(Char == immutable char)) {
 	import core.stdc.string : strlen;
 
 	private yyjson_val* _val;
