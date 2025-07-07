@@ -496,111 +496,111 @@ if (isOutputRange!(Out,char))
         }
 
         final switch (value.type) {
-            case JSONType.object:
-                auto obj = value.objectRange;
-                if (!obj.length) {
-                        json.put("{}");
+        case JSONType.object:
+            auto obj = value.objectRange;
+            if (!obj.length) {
+                json.put("{}");
+            } else {
+                putCharAndEOL('{');
+                bool first = true;
+
+				import core.lifetime : move;
+                foreach (const ref pair; move(obj)) {
+					if (!first)
+						putCharAndEOL(',');
+					first = false;
+					putTabs(1);
+					json.put(pair.key.str);
+					json.put(':');
+					if (pretty)
+						json.put(' ');
+					toValueImpl(pair.value, indentLevel + 1);
+				}
+
+                putEOL();
+                putTabs();
+                json.put('}');
+            }
+			break;
+
+        case JSONType.array:
+            auto obj = value.arrayRange;
+            if (!obj.length) {
+                json.put("[]");
+            } else {
+                putCharAndEOL('[');
+                bool first = true;
+
+				import core.lifetime : move;
+                foreach (const ref elm; move(obj)) {
+					if (!first)
+						putCharAndEOL(',');
+					first = false;
+					putTabs(1);
+					toValueImpl(elm, indentLevel + 1);
+				}
+
+                putEOL();
+                putTabs();
+                json.put(']');
+            }
+			break;
+
+        case JSONType.string:
+            json.put(value.str);
+            break;
+
+        case JSONType.integer:
+            json.put(to!string(value.integer));
+            break;
+
+        case JSONType.uinteger:
+            json.put(to!string(value.uinteger));
+            break;
+
+        case JSONType.float_:
+            import std.math.traits : isNaN, isInfinity;
+            auto val = value.floating;
+            if (val.isNaN) {
+                if (options._specialFloatLiterals) {
+					json.put("nan");
                 } else {
-                    putCharAndEOL('{');
-                    bool first = true;
-
-					import core.lifetime : move;
-                    foreach (const ref pair; move(obj)) {
-						if (!first)
-							putCharAndEOL(',');
-						first = false;
-						putTabs(1);
-						json.put(pair.key.str);
-						json.put(':');
-						if (pretty)
-							json.put(' ');
-						toValueImpl(pair.value, indentLevel + 1);
-					}
-
-                    putEOL();
-                    putTabs();
-                    json.put('}');
+                    throw new Exception(
+										"Cannot encode NaN. Consider passing the specialFloatLiterals flag.");
                 }
-				break;
-
-            case JSONType.array:
-                auto obj = value.arrayRange;
-                if (!obj.length) {
-                        json.put("[]");
+            } else if (val.isInfinity) {
+                if (options._specialFloatLiterals) {
+					json.put((val > 0) ?  "inf" : "-inf");
                 } else {
-                    putCharAndEOL('[');
-                    bool first = true;
-
-					import core.lifetime : move;
-                    foreach (const ref elm; move(obj)) {
-						if (!first)
-							putCharAndEOL(',');
-						first = false;
-						putTabs(1);
-						toValueImpl(elm, indentLevel + 1);
-					}
-
-                    putEOL();
-                    putTabs();
-                    json.put(']');
+                    throw new Exception(
+										"Cannot encode Infinity. Consider passing the specialFloatLiterals flag.");
                 }
-				break;
+            } else {
+                import std.algorithm.searching : canFind;
+                import std.format : sformat;
+                // The correct formula for the number of decimal digits needed for lossless round
+                // trips is actually:
+                //     ceil(log(pow(2.0, double.mant_dig - 1)) / log(10.0) + 1) == (double.dig + 2)
+                // Anything less will round off (1 + double.epsilon)
+                char[25] buf;
+                auto result = buf[].sformat!"%.18g"(val);
+                json.put(result);
+                if (!result.canFind('e') && !result.canFind('.'))
+                    json.put(".0");
+            }
+            break;
 
-            case JSONType.string:
-                json.put(value.str);
-                break;
+        case JSONType.true_:
+            json.put("true");
+            break;
 
-            case JSONType.integer:
-                json.put(to!string(value.integer));
-                break;
+        case JSONType.false_:
+            json.put("false");
+            break;
 
-            case JSONType.uinteger:
-                json.put(to!string(value.uinteger));
-                break;
-
-            case JSONType.float_:
-                import std.math.traits : isNaN, isInfinity;
-                auto val = value.floating;
-                if (val.isNaN) {
-                    if (options._specialFloatLiterals) {
-						json.put("nan");
-                    } else {
-                        throw new Exception(
-                            "Cannot encode NaN. Consider passing the specialFloatLiterals flag.");
-                    }
-                } else if (val.isInfinity) {
-                    if (options._specialFloatLiterals) {
-						json.put((val > 0) ?  "inf" : "-inf");
-                    } else {
-                        throw new Exception(
-                            "Cannot encode Infinity. Consider passing the specialFloatLiterals flag.");
-                    }
-                } else {
-                    import std.algorithm.searching : canFind;
-                    import std.format : sformat;
-                    // The correct formula for the number of decimal digits needed for lossless round
-                    // trips is actually:
-                    //     ceil(log(pow(2.0, double.mant_dig - 1)) / log(10.0) + 1) == (double.dig + 2)
-                    // Anything less will round off (1 + double.epsilon)
-                    char[25] buf;
-                    auto result = buf[].sformat!"%.18g"(val);
-                    json.put(result);
-                    if (!result.canFind('e') && !result.canFind('.'))
-                        json.put(".0");
-                }
-                break;
-
-            case JSONType.true_:
-                json.put("true");
-                break;
-
-            case JSONType.false_:
-                json.put("false");
-                break;
-
-            case JSONType.null_:
-                json.put("null");
-                break;
+        case JSONType.null_:
+            json.put("null");
+            break;
         }
     }
 
