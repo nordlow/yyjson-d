@@ -118,6 +118,21 @@ if (is(Char == const char) || is(Char == immutable char)) {
 
 	private yyjson_val* _val;
 
+	static if (is(Char == immutable(char))) {
+		/***
+		 * Implicitly calls `toJSON` on this JSONValue.
+		 *
+		 * $(I options) can be used to tweak the conversion behavior.
+		 */
+		.string toString(in JSONOptions options = JSONOptions.none) const
+		{
+			return toJSON(this, false, options);
+		}
+		void toString(Out)(Out sink, in Options options = Options.none) const {
+			toJSON(sink, this, false, options);
+		}
+	}
+
 pure nothrow @property:
 	this(const(yyjson_val)* val) const scope nothrow @nogc @trusted {
 		_val = cast(yyjson_val*)val;
@@ -355,13 +370,270 @@ nothrow:
 
 	/++ Returns: `true` iff `this` is an object. +/
 	bool isObject() => type == ValueType.OBJ;
-
-    void toString(Out)(Out sink, in Options options = Options.none) const {
-        toJSON(sink, this, false, options);
-    }
 }
 /// ditto
 alias JSONValue = Value!(immutable(char)); // `std.json` compliance
+
+/**
+Takes a tree of JSON values and returns the serialized string.
+
+Any Object types will be serialized in a key-sorted order.
+
+If `pretty` is false no whitespaces are generated.
+If `pretty` is true serialized string is formatted to be human-readable.
+Set the $(LREF JSONOptions.specialFloatLiterals) flag is set in `options` to encode NaN/Infinity as strings.
+*/
+string toJSON(const ref JSONValue root, in bool pretty = false, in JSONOptions options = JSONOptions.none) @safe
+{
+	import std.array : Appender;
+    Appender!(string) json;
+    toJSON(json, root, pretty, options);
+    return json.data;
+}
+
+import std.range.primitives : isOutputRange;
+
+///
+void toJSON(Out)(
+    auto ref Out json,
+    const ref JSONValue root,
+    in bool pretty = false,
+    in JSONOptions options = JSONOptions.none)
+if (isOutputRange!(Out,char))
+{
+    void toStringImpl(Char)(string str)
+    {
+        json.put('"');
+
+        foreach (Char c; str)
+        {
+            switch (c)
+            {
+                case '"':       json.put("\\\"");       break;
+                case '\\':      json.put("\\\\");       break;
+
+                case '/':
+                    if (!(options._doNotEscapeSlashes))
+                        json.put('\\');
+                    json.put('/');
+                    break;
+
+                case '\b':      json.put("\\b");        break;
+                case '\f':      json.put("\\f");        break;
+                case '\n':      json.put("\\n");        break;
+                case '\r':      json.put("\\r");        break;
+                case '\t':      json.put("\\t");        break;
+                default:
+                {
+                    import std.ascii : isControl;
+                    import std.utf : encode;
+
+                    // Make sure we do UTF decoding iff we want to
+                    // escape Unicode characters.
+                    assert(((options._escapeNonAsciiChars) != 0)
+                        == is(Char == dchar), "JSONOptions.escapeNonAsciiChars needs dchar strings");
+
+                    with (JSONOptions) if (isControl(c) ||
+                        ((options._escapeNonAsciiChars) && c >= 0x80))
+                    {
+                        // Ensure non-BMP characters are encoded as a pair
+                        // of UTF-16 surrogate characters, as per RFC 4627.
+                        wchar[2] wchars; // 1 or 2 UTF-16 code units
+                        size_t wNum = encode(wchars, c); // number of UTF-16 code units
+                        foreach (wc; wchars[0 .. wNum])
+                        {
+                            json.put("\\u");
+                            foreach_reverse (i; 0 .. 4)
+                            {
+                                char ch = (wc >>> (4 * i)) & 0x0f;
+                                ch += ch < 10 ? '0' : 'A' - 10;
+                                json.put(ch);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        json.put(c);
+                    }
+                }
+            }
+        }
+
+        json.put('"');
+    }
+
+    void toString(string str)
+    {
+        // Avoid UTF decoding when possible, as it is unnecessary when
+        // processing JSON.
+        if (options._escapeNonAsciiChars)
+            toStringImpl!dchar(str);
+        else
+            toStringImpl!char(str);
+    }
+
+    /* make the function infer @system when json.put() is @system
+     */
+    if (0)
+        json.put(' ');
+
+    /* Mark as @trusted because json.put() may be @system. This has difficulty
+     * inferring @safe because it is recursive.
+     */
+    void toValueImpl(ref const JSONValue value, ulong indentLevel) @trusted {
+        void putTabs(ulong additionalIndent = 0) {
+            if (pretty)
+                foreach (i; 0 .. indentLevel + additionalIndent)
+                    json.put("    ");
+        }
+        void putEOL() {
+            if (pretty)
+                json.put('\n');
+        }
+        void putCharAndEOL(char ch) {
+            json.put(ch);
+            putEOL();
+        }
+
+        final switch (value.type) {
+            case JSONType.object:
+                auto obj = value.objectRange;
+                if (!obj.length) {
+                        json.put("{}");
+                } else {
+                    putCharAndEOL('{');
+                    bool first = true;
+
+					import core.lifetime : move;
+                    foreach (const ref pair; move(obj)) {
+						if (!first)
+							putCharAndEOL(',');
+						first = false;
+						putTabs(1);
+						json.put(pair.key.str);
+						json.put(':');
+						if (pretty)
+							json.put(' ');
+						toValueImpl(pair.value, indentLevel + 1);
+					}
+
+                    putEOL();
+                    putTabs();
+                    json.put('}');
+                }
+				break;
+
+            case JSONType.array:
+                auto obj = value.arrayRange;
+                if (!obj.length) {
+                        json.put("[]");
+                } else {
+                    putCharAndEOL('[');
+                    bool first = true;
+
+					import core.lifetime : move;
+                    foreach (const ref elm; move(obj)) {
+						if (!first)
+							putCharAndEOL(',');
+						first = false;
+						putTabs(1);
+						toValueImpl(elm, indentLevel + 1);
+					}
+
+                    putEOL();
+                    putTabs();
+                    json.put(']');
+                }
+				break;
+
+            case JSONType.string:
+                json.put(value.str);
+                break;
+
+            case JSONType.integer:
+                json.put(to!string(value.integer));
+                break;
+
+            case JSONType.uinteger:
+                json.put(to!string(value.uinteger));
+                break;
+
+            case JSONType.float_:
+                import std.math.traits : isNaN, isInfinity;
+                auto val = value.floating;
+                if (val.isNaN) {
+                    if (options._specialFloatLiterals) {
+						json.put("nan");
+                    } else {
+                        throw new Exception(
+                            "Cannot encode NaN. Consider passing the specialFloatLiterals flag.");
+                    }
+                } else if (val.isInfinity) {
+                    if (options._specialFloatLiterals) {
+						json.put((val > 0) ?  "inf" : "-inf");
+                    } else {
+                        throw new Exception(
+                            "Cannot encode Infinity. Consider passing the specialFloatLiterals flag.");
+                    }
+                } else {
+                    import std.algorithm.searching : canFind;
+                    import std.format : sformat;
+                    // The correct formula for the number of decimal digits needed for lossless round
+                    // trips is actually:
+                    //     ceil(log(pow(2.0, double.mant_dig - 1)) / log(10.0) + 1) == (double.dig + 2)
+                    // Anything less will round off (1 + double.epsilon)
+                    char[25] buf;
+                    auto result = buf[].sformat!"%.18g"(val);
+                    json.put(result);
+                    if (!result.canFind('e') && !result.canFind('.'))
+                        json.put(".0");
+                }
+                break;
+
+            case JSONType.true_:
+                json.put("true");
+                break;
+
+            case JSONType.false_:
+                json.put("false");
+                break;
+
+            case JSONType.null_:
+                json.put("null");
+                break;
+        }
+    }
+
+    toValueImpl(root, 0);
+}
+
+ // https://issues.dlang.org/show_bug.cgi?id=12897
+@safe unittest
+{
+	const doc0 = `"test测试"`.parseJSONDocument();
+    const JSONValue jv0 = (*doc0).root;
+	assert(jv0.str == "test测试");
+
+	// TODO:
+    // assert(toJSON(jv0, false, JSONOptions.escapeNonAsciiChars) == `"test\u6D4B\u8BD5"`);
+    // JSONValue jv00 = JSONValue("test\u6D4B\u8BD5");
+    // assert(toJSON(jv00, false, JSONOptions.none) == `"test测试"`);
+    // assert(toJSON(jv0, false, JSONOptions.none) == `"test测试"`);
+    // JSONValue jv1 = JSONValue("été");
+    // assert(toJSON(jv1, false, JSONOptions.escapeNonAsciiChars) == `"\u00E9t\u00E9"`);
+    // JSONValue jv11 = JSONValue("\u00E9t\u00E9");
+    // assert(toJSON(jv11, false, JSONOptions.none) == `"été"`);
+    // assert(toJSON(jv1, false, JSONOptions.none) == `"été"`);
+}
+
+/// arrays
+@safe unittest
+{
+	const doc0 = `["a"]`.parseJSONDocument();
+    const JSONValue jv0 = (*doc0).root;
+	assert(jv0.isArray);
+	// assert(jv0.toString == `["a"]`);
+}
 
 /++ Read flag.
  +  See: `yyjson_read_flag` in yyjson.h.
@@ -411,10 +683,16 @@ struct ReadError {
 }
 
 struct Options {
+	static typeof(this) escapeNonAsciiChars() => typeof(this)(false, true, false);
+	static typeof(this) doNotEscapeSlashes() => typeof(this)(false, false, true);
+
 	enum none = typeof(this).init;
-	enum allowAll = typeof(this)(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE | ReadFlag.ALLOW_COMMENTS | ReadFlag.ALLOW_INF_AND_NAN);
+	enum allowAll = typeof(this)(ReadFlag.ALLOW_TRAILING_COMMAS | ReadFlag.ALLOW_INVALID_UNICODE | ReadFlag.ALLOW_COMMENTS | ReadFlag.ALLOW_INF_AND_NAN, false, true);
+
 	private yyjson_read_flag _flag;
-	bool mutable;
+	private bool _escapeNonAsciiChars;
+	private bool _doNotEscapeSlashes;
+	private bool _specialFloatLiterals;
 }
 alias JSONOptions = Options; // `std.json` compliance
 
