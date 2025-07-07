@@ -286,8 +286,6 @@ pure nothrow @property:
 
 	/++ Get value as a floating point number. +/
 	double floating() in(_val.tag == (YYJSON_TYPE_NUM | YYJSON_SUBTYPE_REAL)) => _val.uni.f64;
-	/// ditto
-	alias float_ = floating;
 
 	/++ Get value as a null-terminated C-style string. +/
 	const(char)* cstr() @trusted in(type == ValueType.STR) => _val.uni.str;
