@@ -401,29 +401,27 @@ void toJSON(Out)(
     in JSONOptions options = JSONOptions.none)
 if (isOutputRange!(Out,char))
 {
-    void toStringImpl(Char)(string str)
+    void toStringImpl(Char)(in char[] str)
     {
         json.put('"');
 
-        foreach (Char c; str)
-        {
-            switch (c)
-            {
-                case '"':       json.put("\\\"");       break;
-                case '\\':      json.put("\\\\");       break;
+        foreach (Char c; str) {
+            switch (c) {
+            case '"':       json.put("\\\"");       break;
+            case '\\':      json.put("\\\\");       break;
 
-                case '/':
-                    if (!(options._doNotEscapeSlashes))
-                        json.put('\\');
-                    json.put('/');
-                    break;
+            case '/':
+                if (!(options._doNotEscapeSlashes))
+                    json.put('\\');
+                json.put('/');
+                break;
 
-                case '\b':      json.put("\\b");        break;
-                case '\f':      json.put("\\f");        break;
-                case '\n':      json.put("\\n");        break;
-                case '\r':      json.put("\\r");        break;
-                case '\t':      json.put("\\t");        break;
-                default:
+            case '\b':      json.put("\\b");        break;
+            case '\f':      json.put("\\f");        break;
+            case '\n':      json.put("\\n");        break;
+            case '\r':      json.put("\\r");        break;
+            case '\t':      json.put("\\t");        break;
+            default:
                 {
                     import std.ascii : isControl;
                     import std.utf : encode;
@@ -435,26 +433,25 @@ if (isOutputRange!(Out,char))
 
                     with (JSONOptions) if (isControl(c) ||
                         ((options._escapeNonAsciiChars) && c >= 0x80))
-                    {
-                        // Ensure non-BMP characters are encoded as a pair
-                        // of UTF-16 surrogate characters, as per RFC 4627.
-                        wchar[2] wchars; // 1 or 2 UTF-16 code units
-                        size_t wNum = encode(wchars, c); // number of UTF-16 code units
-                        foreach (wc; wchars[0 .. wNum])
-                        {
-                            json.put("\\u");
-                            foreach_reverse (i; 0 .. 4)
-                            {
-                                char ch = (wc >>> (4 * i)) & 0x0f;
-                                ch += ch < 10 ? '0' : 'A' - 10;
-                                json.put(ch);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        json.put(c);
-                    }
+						{
+							// Ensure non-BMP characters are encoded as a pair
+							// of UTF-16 surrogate characters, as per RFC 4627.
+							wchar[2] wchars; // 1 or 2 UTF-16 code units
+							size_t wNum = encode(wchars, c); // number of UTF-16 code units
+							foreach (wc; wchars[0 .. wNum])
+								{
+									json.put("\\u");
+									foreach_reverse (i; 0 .. 4)
+										{
+											char ch = (wc >>> (4 * i)) & 0x0f;
+											ch += ch < 10 ? '0' : 'A' - 10;
+											json.put(ch);
+										}
+								}
+						}
+                    else {
+						json.put(c);
+					}
                 }
             }
         }
@@ -462,8 +459,7 @@ if (isOutputRange!(Out,char))
         json.put('"');
     }
 
-    void toString(string str)
-    {
+    void toString(in char[] str) {
         // Avoid UTF decoding when possible, as it is unnecessary when
         // processing JSON.
         if (options._escapeNonAsciiChars)
@@ -495,6 +491,7 @@ if (isOutputRange!(Out,char))
             putEOL();
         }
 
+		dbg(value.type);
         final switch (value.type) {
         case JSONType.object:
             auto obj = value.objectRange;
@@ -1177,7 +1174,7 @@ yyjson_val *yyjson_obj_getn(yyjson_val *obj, const char *key, size_t key_len);
 
 void dbg(Args...)(scope auto ref Args args, in string file = __FILE_FULL_PATH__, in uint line = __LINE__) pure nothrow {
 	import core.stdc.stdio : stdout, stderr, fflush;
-	import std.stdio : write;
+	import std.stdio : write, writeln;
 	debug {
 		() @trusted {
 		write(file);
