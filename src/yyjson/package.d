@@ -9,10 +9,10 @@ import yyjson.result : Result;
 
 /++ JSON Document.
  +
- +  TODO: Turn into a result type being either a non-null pointer or an error type.
- +  Descriminator can be the least significant bit.
+ +	TODO: Turn into a result type being either a non-null pointer or an error type.
+ +	Descriminator can be the least significant bit.
  +
- +  See_Also: https://en.wikipedia.org/wiki/Mmap
+ +	See_Also: https://en.wikipedia.org/wiki/Mmap
  +/
 struct Document(Char = const(char), bool memoryMapped = false)
 if (is(Char == const char) || is(Char == immutable char)) {
@@ -98,15 +98,15 @@ alias JSONValueType = ValueType;
  + `std.json` compliance.
  +/
 enum JSONType : byte {
-    null_,
-    string,
-    integer,
-    uinteger,
-    float_,
-    array,
-    object,
-    true_,
-    false_,
+	null_,
+	string,
+	integer,
+	uinteger,
+	float_,
+	array,
+	object,
+	true_,
+	false_,
 	raw, // Extended.
 	none, // Extended.
 }
@@ -201,7 +201,7 @@ pure nothrow @property:
 			const(Value!(Char)) front() return scope in(!empty) => typeof(return)(_val);
 		}
 		return Result(_val);
- 	}
+	}
 	alias array = arrayRange; // `std.traits` compliance
 
 	/++ Object key type. +/
@@ -280,7 +280,7 @@ pure nothrow @property:
 			const(KeyValue) front() return scope => typeof(return)(frontKey, frontValue);
 		}
 		return Result(_val);
- 	}
+	}
 	alias orderedObject = objectRange; // `std.json` compliance
 	alias object = objectRange; // `std.traits` compliance
 	alias byKeyValue = objectRange; // `std.traits` compliance
@@ -386,53 +386,53 @@ Set the $(LREF JSONOptions.specialFloatLiterals) flag is set in `options` to enc
 string toJSON(const ref JSONValue root, in bool pretty = false, in JSONOptions options = JSONOptions.none) @safe
 {
 	import std.array : Appender;
-    Appender!(string) json;
-    toJSON(json, root, pretty, options);
-    return json.data;
+	Appender!(string) json;
+	toJSON(json, root, pretty, options);
+	return json.data;
 }
 
 import std.range.primitives : isOutputRange;
 
 ///
 void toJSON(Out)(
-    auto ref Out json,
-    const ref JSONValue root,
-    in bool pretty = false,
-    in JSONOptions options = JSONOptions.none)
+	auto ref Out json,
+	const ref JSONValue root,
+	in bool pretty = false,
+	in JSONOptions options = JSONOptions.none)
 if (isOutputRange!(Out,char))
 {
-    void toStringImpl(Char)(in char[] str)
-    {
-        json.put('"');
+	void toStringImpl(Char)(in char[] str)
+	{
+		json.put('"');
 
-        foreach (Char c; str) {
-            switch (c) {
-            case '"':       json.put("\\\"");       break;
-            case '\\':      json.put("\\\\");       break;
+		foreach (Char c; str) {
+			switch (c) {
+			case '"':		 json.put("\\\"");		 break;
+			case '\\':		 json.put("\\\\");		 break;
 
-            case '/':
-                if (!(options._doNotEscapeSlashes))
-                    json.put('\\');
-                json.put('/');
-                break;
+			case '/':
+				if (!(options._doNotEscapeSlashes))
+					json.put('\\');
+				json.put('/');
+				break;
 
-            case '\b':      json.put("\\b");        break;
-            case '\f':      json.put("\\f");        break;
-            case '\n':      json.put("\\n");        break;
-            case '\r':      json.put("\\r");        break;
-            case '\t':      json.put("\\t");        break;
-            default:
-                {
-                    import std.ascii : isControl;
-                    import std.utf : encode;
+			case '\b':		 json.put("\\b");		 break;
+			case '\f':		 json.put("\\f");		 break;
+			case '\n':		 json.put("\\n");		 break;
+			case '\r':		 json.put("\\r");		 break;
+			case '\t':		 json.put("\\t");		 break;
+			default:
+				{
+					import std.ascii : isControl;
+					import std.utf : encode;
 
-                    // Make sure we do UTF decoding iff we want to
-                    // escape Unicode characters.
-                    assert(((options._escapeNonAsciiChars) != 0)
-                        == is(Char == dchar), "JSONOptions.escapeNonAsciiChars needs dchar strings");
+					// Make sure we do UTF decoding iff we want to
+					// escape Unicode characters.
+					assert(((options._escapeNonAsciiChars) != 0)
+						== is(Char == dchar), "JSONOptions.escapeNonAsciiChars needs dchar strings");
 
-                    with (JSONOptions) if (isControl(c) ||
-                        ((options._escapeNonAsciiChars) && c >= 0x80))
+					with (JSONOptions) if (isControl(c) ||
+						((options._escapeNonAsciiChars) && c >= 0x80))
 						{
 							// Ensure non-BMP characters are encoded as a pair
 							// of UTF-16 surrogate characters, as per RFC 4627.
@@ -449,59 +449,59 @@ if (isOutputRange!(Out,char))
 										}
 								}
 						}
-                    else {
+					else {
 						json.put(c);
 					}
-                }
-            }
-        }
+				}
+			}
+		}
 
-        json.put('"');
-    }
+		json.put('"');
+	}
 
-    void toString(in char[] str) {
-        // Avoid UTF decoding when possible, as it is unnecessary when
-        // processing JSON.
-        if (options._escapeNonAsciiChars)
-            toStringImpl!dchar(str);
-        else
-            toStringImpl!char(str);
-    }
+	void toString(in char[] str) {
+		// Avoid UTF decoding when possible, as it is unnecessary when
+		// processing JSON.
+		if (options._escapeNonAsciiChars)
+			toStringImpl!dchar(str);
+		else
+			toStringImpl!char(str);
+	}
 
-    /* make the function infer @system when json.put() is @system
-     */
-    if (0)
-        json.put(' ');
+	/* make the function infer @system when json.put() is @system
+	 */
+	if (0)
+		json.put(' ');
 
-    /* Mark as @trusted because json.put() may be @system. This has difficulty
-     * inferring @safe because it is recursive.
-     */
-    void toValueImpl(ref const JSONValue value, ulong indentLevel) @trusted {
-        void putTabs(ulong additionalIndent = 0) {
-            if (pretty)
-                foreach (i; 0 .. indentLevel + additionalIndent)
-                    json.put("    ");
-        }
-        void putEOL() {
-            if (pretty)
-                json.put('\n');
-        }
-        void putCharAndEOL(char ch) {
-            json.put(ch);
-            putEOL();
-        }
+	/* Mark as @trusted because json.put() may be @system. This has difficulty
+	 * inferring @safe because it is recursive.
+	 */
+	void toValueImpl(ref const JSONValue value, ulong indentLevel) @trusted {
+		void putTabs(ulong additionalIndent = 0) {
+			if (pretty)
+				foreach (i; 0 .. indentLevel + additionalIndent)
+					json.put("	  ");
+		}
+		void putEOL() {
+			if (pretty)
+				json.put('\n');
+		}
+		void putCharAndEOL(char ch) {
+			json.put(ch);
+			putEOL();
+		}
 
 		dbg(value.type);
-        final switch (value.type) {
-        case JSONType.object:
-            auto obj = value.objectRange;
-            if (!obj.length) {
-                json.put("{}");
-            } else {
-                putCharAndEOL('{');
-                bool first = true;
+		final switch (value.type) {
+		case JSONType.object:
+			auto obj = value.objectRange;
+			if (!obj.length) {
+				json.put("{}");
+			} else {
+				putCharAndEOL('{');
+				bool first = true;
 
-                foreach (const ref pair; obj) {
+				foreach (const ref pair; obj) {
 					if (!first)
 						putCharAndEOL(',');
 					first = false;
@@ -513,23 +513,23 @@ if (isOutputRange!(Out,char))
 					toValueImpl(pair.value, indentLevel + 1);
 				}
 
-                putEOL();
-                putTabs();
-                json.put('}');
-            }
+				putEOL();
+				putTabs();
+				json.put('}');
+			}
 			break;
 
-        case JSONType.array:
+		case JSONType.array:
 
-            auto obj = value.arrayRange;
-            if (!obj.length) {
-                json.put("[]");
-            } else {
-                putCharAndEOL('[');
-                bool first = true;
+			auto obj = value.arrayRange;
+			if (!obj.length) {
+				json.put("[]");
+			} else {
+				putCharAndEOL('[');
+				bool first = true;
 
 				import core.lifetime : move;
-                foreach (const ref elm; move(obj)) {
+				foreach (const ref elm; move(obj)) {
 					if (!first)
 						putCharAndEOL(',');
 					first = false;
@@ -537,103 +537,103 @@ if (isOutputRange!(Out,char))
 					toValueImpl(elm, indentLevel + 1);
 				}
 
-                putEOL();
-                putTabs();
-                json.put(']');
-            }
+				putEOL();
+				putTabs();
+				json.put(']');
+			}
 			break;
 
-        case JSONType.string:
-            json.put(value.str);
-            break;
+		case JSONType.string:
+			json.put(value.str);
+			break;
 
-        case JSONType.integer:
-            json.put(to!string(value.integer));
-            break;
+		case JSONType.integer:
+			json.put(to!string(value.integer));
+			break;
 
-        case JSONType.uinteger:
-            json.put(to!string(value.uinteger));
-            break;
+		case JSONType.uinteger:
+			json.put(to!string(value.uinteger));
+			break;
 
-        case JSONType.float_:
-            import std.math.traits : isNaN, isInfinity;
-            auto val = value.floating;
-            if (val.isNaN) {
-                if (options._specialFloatLiterals) {
+		case JSONType.float_:
+			import std.math.traits : isNaN, isInfinity;
+			auto val = value.floating;
+			if (val.isNaN) {
+				if (options._specialFloatLiterals) {
 					json.put("nan");
-                } else {
-                    throw new Exception(
+				} else {
+					throw new Exception(
 										"Cannot encode NaN. Consider passing the specialFloatLiterals flag.");
-                }
-            } else if (val.isInfinity) {
-                if (options._specialFloatLiterals) {
+				}
+			} else if (val.isInfinity) {
+				if (options._specialFloatLiterals) {
 					json.put((val > 0) ?  "inf" : "-inf");
-                } else {
-                    throw new Exception(
+				} else {
+					throw new Exception(
 										"Cannot encode Infinity. Consider passing the specialFloatLiterals flag.");
-                }
-            } else {
-                import std.algorithm.searching : canFind;
-                import std.format : sformat;
-                // The correct formula for the number of decimal digits needed for lossless round
-                // trips is actually:
-                //     ceil(log(pow(2.0, double.mant_dig - 1)) / log(10.0) + 1) == (double.dig + 2)
-                // Anything less will round off (1 + double.epsilon)
-                char[25] buf;
-                auto result = buf[].sformat!"%.18g"(val);
-                json.put(result);
-                if (!result.canFind('e') && !result.canFind('.'))
-                    json.put(".0");
-            }
-            break;
+				}
+			} else {
+				import std.algorithm.searching : canFind;
+				import std.format : sformat;
+				// The correct formula for the number of decimal digits needed for lossless round
+				// trips is actually:
+				//	   ceil(log(pow(2.0, double.mant_dig - 1)) / log(10.0) + 1) == (double.dig + 2)
+				// Anything less will round off (1 + double.epsilon)
+				char[25] buf;
+				auto result = buf[].sformat!"%.18g"(val);
+				json.put(result);
+				if (!result.canFind('e') && !result.canFind('.'))
+					json.put(".0");
+			}
+			break;
 
-        case JSONType.true_:
-            json.put("true");
-            break;
+		case JSONType.true_:
+			json.put("true");
+			break;
 
-        case JSONType.false_:
-            json.put("false");
-            break;
+		case JSONType.false_:
+			json.put("false");
+			break;
 
-        case JSONType.null_:
-            json.put("null");
-            break;
-        }
-    }
+		case JSONType.null_:
+			json.put("null");
+			break;
+		}
+	}
 
-    toValueImpl(root, 0);
+	toValueImpl(root, 0);
 }
 
 // https://issues.dlang.org/show_bug.cgi?id=12897
 @safe unittest
 {
 	const doc0 = `"test测试"`.parseJSONDocument();
-    const JSONValue jv0 = (*doc0).root;
+	const JSONValue jv0 = (*doc0).root;
 	assert(jv0.str == "test测试");
 
 	// TODO:
-    // assert(toJSON(jv0, false, JSONOptions.escapeNonAsciiChars) == `"test\u6D4B\u8BD5"`);
-    // JSONValue jv00 = JSONValue("test\u6D4B\u8BD5");
-    // assert(toJSON(jv00, false, JSONOptions.none) == `"test测试"`);
-    // assert(toJSON(jv0, false, JSONOptions.none) == `"test测试"`);
-    // JSONValue jv1 = JSONValue("été");
-    // assert(toJSON(jv1, false, JSONOptions.escapeNonAsciiChars) == `"\u00E9t\u00E9"`);
-    // JSONValue jv11 = JSONValue("\u00E9t\u00E9");
-    // assert(toJSON(jv11, false, JSONOptions.none) == `"été"`);
-    // assert(toJSON(jv1, false, JSONOptions.none) == `"été"`);
+	// assert(toJSON(jv0, false, JSONOptions.escapeNonAsciiChars) == `"test\u6D4B\u8BD5"`);
+	// JSONValue jv00 = JSONValue("test\u6D4B\u8BD5");
+	// assert(toJSON(jv00, false, JSONOptions.none) == `"test测试"`);
+	// assert(toJSON(jv0, false, JSONOptions.none) == `"test测试"`);
+	// JSONValue jv1 = JSONValue("été");
+	// assert(toJSON(jv1, false, JSONOptions.escapeNonAsciiChars) == `"\u00E9t\u00E9"`);
+	// JSONValue jv11 = JSONValue("\u00E9t\u00E9");
+	// assert(toJSON(jv11, false, JSONOptions.none) == `"été"`);
+	// assert(toJSON(jv1, false, JSONOptions.none) == `"été"`);
 }
 
 /// arrays
 @safe unittest
 {
 	const doc0 = `["a"]`.parseJSONDocument();
-    const JSONValue jv0 = (*doc0).root;
+	const JSONValue jv0 = (*doc0).root;
 	assert(jv0.isArray);
 	// assert(jv0.toString == `["a"]`);
 }
 
 /++ Read flag.
- +  See: `yyjson_read_flag` in yyjson.h.
+ +	See: `yyjson_read_flag` in yyjson.h.
  +/
 enum ReadFlag : yyjson_read_flag {
 	NOFLAG = YYJSON_READ_NOFLAG,
@@ -648,7 +648,7 @@ enum ReadFlag : yyjson_read_flag {
 }
 
 /++ Read (error) code.
- +  See: `yyjson_read_code` in yyjson.h.
+ +	See: `yyjson_read_code` in yyjson.h.
  +/
 enum ReadCode : yyjson_read_code {
 	SUCCESS = YYJSON_READ_SUCCESS,
@@ -668,15 +668,15 @@ enum ReadCode : yyjson_read_code {
 }
 
 /++ Read error.
- +  Same memory layout as `yyjson_read_err`.
+ +	Same memory layout as `yyjson_read_err`.
  +/
 struct ReadError {
-    /** Error code, see `yyjson_read_code` for all possible values. */
+	/** Error code, see `yyjson_read_code` for all possible values. */
 	ReadCode code;
-    /** Error message, constant, no need to free (NULL if success). */
-    const(char)* msg;
-    /** Error byte position for input data (0 if success). */
-    size_t pos;
+	/** Error message, constant, no need to free (NULL if success). */
+	const(char)* msg;
+	/** Error byte position for input data (0 if success). */
+	size_t pos;
 }
 
 struct Options {
@@ -750,7 +750,7 @@ version(yyjson_benchmark) {
 		import std.stdio : writeln;
 		const type = memoryMapped ? " memory mapped" : "";
 		if (docR) {
- 			writeln(`Parsing`, type, " ", path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED, options: ", options);
+			writeln(`Parsing`, type, " ", path, ` of size `, (*docR)._store.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED, options: ", options);
 		} else {
 			writeln(`Parsing`, type, " ", path, " FAILED, options: ", options);
 		}
@@ -791,21 +791,21 @@ alias JSONDocument = Document!(const(char), false);
 alias JSONDocumentMMap = Document!(const(char), true);
 
 /++ Parse JSON Document from `data`.
- +  See_Also: https://dlang.org/library/std/json/parse_json.html
+ +	See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
 Result!(Document!(Char, false), ReadError) parseJSONDocument(Char = const(char))(return scope Char[] data, in Options options = Options.none) pure nothrow @nogc @trusted {
 	ReadError err;
-    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
+	auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(Char, false)(doc, data)) : typeof(return)(err));
 }
 
 /++ Parse JSON Document from `mmfile`.
- +  See_Also: https://dlang.org/library/std/json/parse_json.html
+ +	See_Also: https://dlang.org/library/std/json/parse_json.html
  +/
 Result!(JSONDocumentMMap, ReadError) parseJSONDocumentMmap(Char = const(char))(return scope MmFile mmfile, in Options options = Options.none) /+pure nothrow @nogc+/ @trusted {
 	ReadError err;
 	const data = (cast(const(char)[])mmfile[]);
-    auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
+	auto doc = yyjson_read_opts(data.ptr, data.length, options._flag, null, cast(yyjson_read_err*)&err/+same layout+/);
 	return (err.code == ReadCode.SUCCESS ? typeof(return)(Document!(Char, true)(doc, mmfile)) : typeof(return)(err));
 }
 
@@ -1091,7 +1091,7 @@ debug import std.stdio : writeln;
 		debug const dur = sw.peek;
 		const mbps = src.length.bytesPer(dur) * 1e-6;
 		if (doc) {
- 			debug writeln(`Parsing `, path, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+			debug writeln(`Parsing `, path, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 		} else {
 			debug writeln(`Parsing `, path, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 		}
@@ -1113,7 +1113,7 @@ debug import std.stdio : writeln;
 				debug const dur = sw.peek;
 				const mbps = src.length.bytesPer(dur) * 1e-6;
 				if (doc) {
- 					dbg(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
+					dbg(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to SUCCEED");
 				} else {
 					dbg(`Parsing `, dent.name, ` of size `, src.length, " at ", cast(size_t)mbps, ` Mb/s took `, dur, " to FAIL");
 				}
@@ -1128,29 +1128,132 @@ version(yyjson_test) {
 	import yyjson.path;
 }
 
-import yyjson_c; // ImportC yyjson.c. Functions are overrided below.
+/+ import yyjson_c; // ImportC yyjson.c. Functions are overrided below. +/
+
 // Need these because ImportC doesn't support overriding qualifiers.
+
 extern(C) private pure nothrow @nogc {
-import core.stdc.stdint : uint32_t, uint64_t, int64_t;
+
+import core.stdc.stdint : uint8_t, uint32_t, uint64_t, int64_t;
+
+alias yyjson_type = uint8_t;
+enum YYJSON_TYPE_NONE = cast(yyjson_type)(0);
+enum YYJSON_TYPE_RAW = cast(yyjson_type)(1);
+enum YYJSON_TYPE_NULL = cast(yyjson_type)(2);
+enum YYJSON_TYPE_BOOL = cast(yyjson_type)(3);
+enum YYJSON_TYPE_NUM = cast(yyjson_type)(4);
+enum YYJSON_TYPE_STR = cast(yyjson_type)(5);
+enum YYJSON_TYPE_ARR = cast(yyjson_type)(6);
+enum YYJSON_TYPE_OBJ = cast(yyjson_type)(7);
+enum YYJSON_TYPE_MASK = cast(uint8_t)(0x07);
+enum YYJSON_TYPE_BIT = cast(uint8_t)(3);
+enum YYJSON_SUBTYPE_MASK = cast(uint8_t)(0x18);
+enum YYJSON_SUBTYPE_BIT = cast(uint8_t)(2);
+enum YYJSON_RESERVED_MASK = cast(uint8_t)(0xE0);
+enum YYJSON_RESERVED_BIT = cast(uint8_t)(3);
+enum YYJSON_TAG_MASK = cast(uint8_t)(0xFF);
+enum YYJSON_TAG_BIT = cast(uint8_t)(8);
+
+alias yyjson_subtype = uint8_t;
+enum YYJSON_SUBTYPE_NONE = cast(uint8_t)(0 << 3);
+enum YYJSON_SUBTYPE_FALSE = cast(uint8_t)(0 << 3);
+enum YYJSON_SUBTYPE_TRUE = cast(uint8_t)(1 << 3);
+enum YYJSON_SUBTYPE_UINT = cast(uint8_t)(0 << 3);
+enum YYJSON_SUBTYPE_SINT = cast(uint8_t)(1 << 3);
+enum YYJSON_SUBTYPE_REAL = cast(uint8_t)(2 << 3);
+enum YYJSON_SUBTYPE_NOESC = cast(uint8_t)(1 << 3);
+
+alias yyjson_read_flag = uint32_t;
+enum YYJSON_READ_NOFLAG = cast(yyjson_read_flag)(0);
+enum YYJSON_READ_INSITU = cast(yyjson_read_flag)(1 << 0);
+enum YYJSON_READ_STOP_WHEN_DONE = cast(yyjson_read_flag)(1 << 1);
+enum YYJSON_READ_ALLOW_TRAILING_COMMAS = cast(yyjson_read_flag)(1 << 2);
+enum YYJSON_READ_ALLOW_COMMENTS = cast(yyjson_read_flag)(1 << 3);
+enum YYJSON_READ_ALLOW_INF_AND_NAN = cast(yyjson_read_flag)(1 << 4);
+enum YYJSON_READ_NUMBER_AS_RAW = cast(yyjson_read_flag)(1 << 5);
+enum YYJSON_READ_ALLOW_INVALID_UNICODE = cast(yyjson_read_flag)(1 << 6);
+enum YYJSON_READ_BIGNUM_AS_RAW = cast(yyjson_read_flag)(1 << 7);
+enum YYJSON_READ_ALLOW_BOM = cast(yyjson_read_flag)(1 << 8);
+
+alias yyjson_read_code = uint32_t;
+enum YYJSON_READ_SUCCESS = cast(yyjson_read_code)(0);
+enum YYJSON_READ_ERROR_INVALID_PARAMETER = cast(yyjson_read_code)(1);
+enum YYJSON_READ_ERROR_MEMORY_ALLOCATION = cast(yyjson_read_code)(2);
+enum YYJSON_READ_ERROR_EMPTY_CONTENT = cast(yyjson_read_code)(3);
+enum YYJSON_READ_ERROR_UNEXPECTED_CONTENT = cast(yyjson_read_code)(4);
+enum YYJSON_READ_ERROR_UNEXPECTED_END = cast(yyjson_read_code)(5);
+enum YYJSON_READ_ERROR_UNEXPECTED_CHARACTER = cast(yyjson_read_code)(6);
+enum YYJSON_READ_ERROR_JSON_STRUCTURE = cast(yyjson_read_code)(7);
+enum YYJSON_READ_ERROR_INVALID_COMMENT = cast(yyjson_read_code)(8);
+enum YYJSON_READ_ERROR_INVALID_NUMBER = cast(yyjson_read_code)(9);
+enum YYJSON_READ_ERROR_INVALID_STRING = cast(yyjson_read_code)(10);
+enum YYJSON_READ_ERROR_LITERAL = cast(yyjson_read_code)(11);
+enum YYJSON_READ_ERROR_FILE_OPEN = cast(yyjson_read_code)(12);
+enum YYJSON_READ_ERROR_FILE_READ = cast(yyjson_read_code)(13);
+enum YYJSON_READ_ERROR_MORE = cast(yyjson_read_code)(14);
+
+struct yyjson_alc {
+	void* function(void* ctx, size_t size) malloc;
+	void* function(void* ctx, void* ptr, size_t old_size, size_t size) realloc;
+	void function(void* ctx, void* ptr) free;
+	void *ctx;
+}
+
+struct yyjson_doc {
+	yyjson_val *root;
+	yyjson_alc alc;
+	size_t dat_read;
+	size_t val_read;
+	char *str_pool;
+}
+struct yyjson_read_err;
+
+struct yyjson_arr_iter {
+	size_t idx;
+	size_t max;
+	yyjson_val *cur;
+}
+
+struct yyjson_obj_iter {
+	size_t idx;
+	size_t max;
+	yyjson_val *cur;
+	yyjson_val *obj;
+}
+
 yyjson_doc *yyjson_read_opts(scope const(char)* dat,
-                             size_t len,
-                             yyjson_read_flag flg,
-                             const yyjson_alc *alc,
-                             yyjson_read_err *err);
+							 size_t len,
+							 yyjson_read_flag flg,
+							 const yyjson_alc *alc,
+							 yyjson_read_err *err);
 alias MallocFn = void* function(void* ctx, size_t size);
 alias ReallocFn = void* function(void* ctx, void* ptr, size_t old_size, size_t size);
 alias FreeFn = void function(void* ctx, void* ptr);
 // struct yyjson_alc {
 // pure nothrow @nogc:
-//     /** Same as libc's malloc(size), should not be NULL. */
-// 	MallocFn malloc;
-//     /** Same as libc's realloc(ptr, size), should not be NULL. */
-// 	ReallocFn realloc;
-//     /** Same as libc's free(ptr), should not be NULL. */
-// 	FreeFn free;
-//     /** A context for malloc/realloc/free, can be NULL. */
-//     void *ctx;
+//	   /** Same as libc's malloc(size), should not be NULL. */
+//	MallocFn malloc;
+//	   /** Same as libc's realloc(ptr, size), should not be NULL. */
+//	ReallocFn realloc;
+//	   /** Same as libc's free(ptr), should not be NULL. */
+//	FreeFn free;
+//	   /** A context for malloc/realloc/free, can be NULL. */
+//	   void *ctx;
 // }
+
+union yyjson_val_uni {
+	uint64_t	u64;
+	int64_t		i64;
+	double		f64;
+	const char *str;
+	void		*ptr;
+	size_t		ofs;
+}
+
+struct yyjson_val {
+	uint64_t tag; /**< type, subtype and length */
+	yyjson_val_uni uni; /**< payload */
+}
 
 // value:
 bool unsafe_yyjson_get_bool(const yyjson_val* _val);
