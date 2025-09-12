@@ -72,7 +72,7 @@ struct Result(T, E = void) {
 		return this.isValue == that.isValue;
 	}
 
-	string toString() const /+scope pure+/ nothrow {
+	string toString()() const /+scope pure+/ nothrow {
 		if (isValue)
 			return toValueString;
 		static if (hasError)
@@ -81,7 +81,7 @@ struct Result(T, E = void) {
 			return "invalid";
 	}
 
-	private string toValueString() const nothrow @trusted {
+	private string toValueString()() const nothrow @trusted {
 		// TODO: remove when std.conv.to!string(_error) doens't throw for trivial types:
 		try {
 			import std.conv : to;
@@ -91,7 +91,7 @@ struct Result(T, E = void) {
 	}
 
 	static if (hasError) {
-		private string toErrorString() const nothrow @trusted {
+		private string toErrorString()() const nothrow @trusted {
 			// TODO: remove when std.conv.to!string(_error) doens't throw for trivial types:
 			try {
 				import std.conv : to;
@@ -111,14 +111,14 @@ private:
 	/++ TODO: avoid `_isValue` when `T` is a pointer and `_error.sizeof` <=
 		`size_t.sizeof:` by making some part part of pointer the
 		discriminator for a defined value preferrably the lowest bit.
-     +/
+	 +/
 	static if (hasError) {
 		union {
 			T _value;
 			E _error;
 		}
 	} else {
-	    T _value;
+		T _value;
 	}
 	bool _isValue;
 }
