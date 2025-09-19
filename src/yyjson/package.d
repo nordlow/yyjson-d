@@ -4,6 +4,7 @@ module yyjson;
 
 import std.mmfile : MmFile;
 import yyjson.result : Result;
+import yyjson.path : FilePath;
 
 @safe:
 
@@ -477,6 +478,7 @@ if (isOutputRange!(Out,char))
 	 * inferring @safe because it is recursive.
 	 */
 	void toValueImpl(ref const JSONValue value, ulong indentLevel) @trusted {
+		import std.conv : to;
 		void putTabs(ulong additionalIndent = 0) {
 			if (pretty)
 				foreach (i; 0 .. indentLevel + additionalIndent)
@@ -548,11 +550,11 @@ if (isOutputRange!(Out,char))
 			break;
 
 		case JSONType.integer:
-			json.put(to!string(value.integer));
+			json.put(value.integer.to!string);
 			break;
 
 		case JSONType.uinteger:
-			json.put(to!string(value.uinteger));
+			json.put(value.uinteger.to!string);
 			break;
 
 		case JSONType.float_:
@@ -1125,7 +1127,6 @@ debug import std.stdio : writeln;
 
 version(yyjson_test) {
 	import std.conv : to;
-	import yyjson.path;
 }
 
 /+ import yyjson_c; // ImportC yyjson.c. Functions are overrided below. +/
