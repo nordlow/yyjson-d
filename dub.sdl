@@ -13,13 +13,20 @@ preBuildCommands "bash provision.sh"
 lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
 libs "yyjson"
 
+# WARNING: dub picks the first configuration by default so put debug first here!
+configuration "debug" { # `redub` doesn't support custom `buildType`
+   dflags "-g" "-checkaction=context" "-allinst"
+   dflags "-debug" platform="dmd"
+   dflags "--d-debug" platform="ldc"
+}
+
 configuration "unittest" { # `redub` doesn't support custom `buildType`
 	versions "yyjson_test"
 	dflags "-g" "-checkaction=context" "-allinst" "-unittest" "-cov" "-cov=ctfe"
 	dflags "-fsanitize=address" platform="posix-ldc"
 	dflags "-debug" platform="dmd"
 	dflags "--d-debug" platform="ldc"
-	dflags "-Xcc=-fuse-ld=lld"  # use better linker
+	dflags "-Xcc=-fuse-ld=lld"	# use better linker
 }
 
 buildType "unittest" {
@@ -28,7 +35,7 @@ buildType "unittest" {
 	dflags "-fsanitize=address" platform="posix-ldc"
 	dflags "-debug" platform="dmd"
 	dflags "--d-debug" platform="ldc"
-	dflags "-Xcc=-fuse-ld=lld"  # use better linker
+	dflags "-Xcc=-fuse-ld=lld"	# use better linker
 }
 
 configuration "unittest-without-coverage" { # `redub` doesn't support custom `buildType`
@@ -37,7 +44,7 @@ configuration "unittest-without-coverage" { # `redub` doesn't support custom `bu
 	dflags "-fsanitize=address" platform="posix-ldc"
 	dflags "-debug" platform="dmd"
 	dflags "--d-debug" platform="ldc"
-	dflags "-Xcc=-fuse-ld=lld"  # use better linker
+	dflags "-Xcc=-fuse-ld=lld"	# use better linker
 }
 
 buildType "unittest-without-coverage" {
@@ -46,7 +53,7 @@ buildType "unittest-without-coverage" {
 	dflags "-fsanitize=address" platform="posix-ldc"
 	dflags "-debug" platform="dmd"
 	dflags "--d-debug" platform="ldc"
-	dflags "-Xcc=-fuse-ld=lld"  # use better linker
+	dflags "-Xcc=-fuse-ld=lld"	# use better linker
 }
 
 configuration "benchmark-release" {
