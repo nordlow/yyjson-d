@@ -7,7 +7,6 @@ authors "Per Nordlöw <per.nordlow@gmail.com>"
 targetPath "bin"
 
 dflags "-vcolumns" "-preview=dip1000" "-preview=in"
-dflags "-Xcc=-fuse-ld=lld"	# use better linker
 importPaths "src"
 
 preBuildCommands "bash provision.sh"
