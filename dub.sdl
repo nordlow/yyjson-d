@@ -5,9 +5,9 @@ license "BSL-1.0"
 copyright "Copyright © 2024, Per Nordlöw"
 authors "Per Nordlöw <per.nordlow@gmail.com>"
 targetPath "bin"
+importPaths "src"
 
 dflags "-vcolumns" "-preview=dip1000" "-preview=in"
-importPaths "src"
 
 preBuildCommands "bash provision.sh"
 lflags "-L$PACKAGE_DIR/yyjson-build" "-rpath=$PACKAGE_DIR/yyjson-build"
